@@ -24,7 +24,8 @@ return new class extends Migration
     $table->enum('job_type', ['full_time', 'part_time', 'contract', 'internship', 'remote'])->default('full_time');
     $table->enum('experience_level', ['entry', 'mid', 'senior', 'executive'])->default('entry');
     $table->enum('status', ['open', 'closed', 'draft'])->default('open');
-    $table->date('deadline')->nullable();
+    $table->date('start_date')->nullable();
+$table->date('end_date')->nullable();
     $table->timestamps();
 });
     }

@@ -17,8 +17,7 @@ return new class extends Migration
     $table->foreignId('job_posting_id')->constrained()->onDelete('cascade');
     $table->foreignId('resume_id')->nullable()->constrained()->onDelete('set null');
     $table->text('cover_letter')->nullable();
-    $table->enum('status', ['applied', 'shortlisted', 'interviewing', 'hired', 'rejected'])->default('applied');
-    $table->timestamps();
+    $table->enum('status', ['applied', 'shortlisted', 'exam_scheduled', 'interview_scheduled', 'hired', 'rejected'])->default('applied');
 });
     }
 

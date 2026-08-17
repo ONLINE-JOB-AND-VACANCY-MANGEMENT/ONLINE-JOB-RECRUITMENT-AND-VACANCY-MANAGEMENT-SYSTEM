@@ -6,10 +6,14 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreJobRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return $this->user()->role?->name === 'employer' && $this->user()->company !== null;
+public function authorize(): bool
+{
+    $user = $this->user();
+    if ($user->role?->name === 'employer') {
+        return $user->company !== null;
     }
+    return $user->role?->name === 'admin';
+}
 
     public function rules(): array
     {
@@ -23,9 +27,11 @@ class StoreJobRequest extends FormRequest
             'location' => 'nullable|string|max:255',
             'job_type' => 'required|in:full_time,part_time,contract,internship,remote',
             'experience_level' => 'required|in:entry,mid,senior,executive',
-            'deadline' => 'nullable|date|after:today',
+            'start_date' => 'nullable|date',
+'end_date' => 'nullable|date|after_or_equal:start_date',
             'skills' => 'nullable|array',
             'skills.*' => 'exists:skills,id',
+            'company_id' => $this->user()->role?->name === 'admin' ? 'required|exists:companies,id' : 'nullable',
         ];
     }
 

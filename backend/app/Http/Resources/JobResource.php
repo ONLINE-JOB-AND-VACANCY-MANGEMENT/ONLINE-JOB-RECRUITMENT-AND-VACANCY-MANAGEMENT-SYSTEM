@@ -20,7 +20,8 @@ class JobResource extends JsonResource
             'job_type' => $this->job_type,
             'experience_level' => $this->experience_level,
             'status' => $this->status,
-            'deadline' => $this->deadline,
+            'start_date' => $this->start_date,
+'end_date' => $this->end_date,
             'company' => [
                 'id' => $this->company?->id,
                 'name' => $this->company?->name,

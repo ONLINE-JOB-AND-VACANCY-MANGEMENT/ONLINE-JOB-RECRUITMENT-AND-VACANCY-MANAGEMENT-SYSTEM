@@ -13,6 +13,10 @@ class Application extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function exam()
+{
+    return $this->hasOne(Exam::class);
+}
 
     public function job()
     {

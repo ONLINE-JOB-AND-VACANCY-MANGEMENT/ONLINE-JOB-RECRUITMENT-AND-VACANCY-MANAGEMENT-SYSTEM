@@ -24,7 +24,8 @@ class JobFactory extends Factory
             'job_type' => fake()->randomElement(['full_time', 'part_time', 'contract', 'internship', 'remote']),
             'experience_level' => fake()->randomElement(['entry', 'mid', 'senior', 'executive']),
             'status' => 'open',
-            'deadline' => fake()->dateTimeBetween('+1 week', '+2 months'),
+            'start_date' => fake()->dateTimeBetween('-1 week', '+1 week'),
+'end_date' => fake()->dateTimeBetween('+2 weeks', '+2 months'),
         ];
     }
 }

@@ -35,18 +35,21 @@ class JobService
         return $query->latest()->paginate($filters['per_page'] ?? 15);
     }
 
-    public function create(array $data): Job
-    {
-        $company = Auth::user()->company;
-        $job = $company->jobs()->create($data);
+public function create(array $data): Job
+{
+    $user = Auth::user();
+    $companyId = $user->role?->name === 'admin' ? $data['company_id'] : $user->company->id;
 
-        if (!empty($data['skills'])) {
-            $job->skills()->sync($data['skills']);
-        }
+    $data['status'] = $data['status'] ?? 'open';
 
-        return $job->load(['company', 'category', 'skills']);
+    $job = \App\Models\Company::find($companyId)->jobs()->create($data);
+
+    if (!empty($data['skills'])) {
+        $job->skills()->sync($data['skills']);
     }
 
+    return $job->load(['company', 'category', 'skills']);
+}
     public function update(Job $job, array $data): Job
     {
         $job->update($data);
