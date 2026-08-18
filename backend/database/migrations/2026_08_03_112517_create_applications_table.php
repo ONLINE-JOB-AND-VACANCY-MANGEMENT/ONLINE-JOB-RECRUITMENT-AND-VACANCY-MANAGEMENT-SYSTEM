@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('applications', function (Blueprint $table) {
+Schema::create('applications', function (Blueprint $table) {
     $table->id();
     $table->foreignId('user_id')->constrained()->onDelete('cascade');
     $table->foreignId('job_posting_id')->constrained()->onDelete('cascade');
     $table->foreignId('resume_id')->nullable()->constrained()->onDelete('set null');
     $table->text('cover_letter')->nullable();
     $table->enum('status', ['applied', 'shortlisted', 'exam_scheduled', 'interview_scheduled', 'hired', 'rejected'])->default('applied');
+    $table->timestamps();
 });
     }
 

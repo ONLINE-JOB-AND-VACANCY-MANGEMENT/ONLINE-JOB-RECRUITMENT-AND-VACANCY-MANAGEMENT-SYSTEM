@@ -12,7 +12,14 @@ class ApplicationService
     public function __construct(protected FileUploadService $fileUploadService) {}
 
     public function apply(Job $job, array $data, $resumeFile = null): Application
-    {
+    {   
+            if ($job->status !== 'open') {
+        throw new \Exception('This job is no longer accepting applications.');
+    }
+
+    if ($job->end_date && now()->gt($job->end_date)) {
+        throw new \Exception('The application deadline for this job has passed.');
+    } 
         $user = Auth::user();
 
         if (Application::where('user_id', $user->id)->where('job_posting_id', $job->id)->exists()) {

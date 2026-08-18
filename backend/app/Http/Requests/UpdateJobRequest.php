@@ -6,11 +6,17 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateJobRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $job = $this->route('job');
-        return $this->user()->company && $job->company_id === $this->user()->company->id;
+public function authorize(): bool
+{
+    $job = $this->route('job');
+    $user = $this->user();
+
+    if ($user->role?->name === 'admin') {
+        return true;
     }
+
+    return $user->company && $job->company_id === $user->company->id;
+}
 
     public function rules(): array
     {

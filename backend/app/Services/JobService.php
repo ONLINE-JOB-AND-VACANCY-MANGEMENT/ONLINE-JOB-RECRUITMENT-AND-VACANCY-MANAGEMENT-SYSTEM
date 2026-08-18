@@ -43,6 +43,7 @@ public function create(array $data): Job
     $data['status'] = $data['status'] ?? 'open';
 
     $job = \App\Models\Company::find($companyId)->jobs()->create($data);
+    $data['status'] = $data['status'] ?? 'open';
 
     if (!empty($data['skills'])) {
         $job->skills()->sync($data['skills']);

@@ -28,6 +28,21 @@ class ApplicationResource extends JsonResource
                 'file_path' => asset('storage/' . $this->resume->file_path),
                 'original_name' => $this->resume->original_name,
             ] : null,
+            'exam' => $this->exam ? [
+    'id' => $this->exam->id,
+    'scheduled_at' => $this->exam->scheduled_at,
+    'location' => $this->exam->location,
+    'mode' => $this->exam->mode,
+    'status' => $this->exam->status,
+    'score' => $this->exam->score,
+] : null,
+'interview' => $this->interview ? [
+    'id' => $this->interview->id,
+    'scheduled_at' => $this->interview->scheduled_at,
+    'location' => $this->interview->location,
+    'mode' => $this->interview->mode,
+    'status' => $this->interview->status,
+] : null,
             'applied_at' => $this->created_at,
         ];
     }

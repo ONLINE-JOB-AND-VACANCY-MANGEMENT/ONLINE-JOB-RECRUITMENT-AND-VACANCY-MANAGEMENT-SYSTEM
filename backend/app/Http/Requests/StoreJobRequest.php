@@ -15,25 +15,30 @@ public function authorize(): bool
     return $user->role?->name === 'admin';
 }
 
-    public function rules(): array
-    {
-        return [
-            'category_id' => 'required|exists:categories,id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'requirements' => 'nullable|string',
-            'salary_min' => 'nullable|numeric|min:0',
-            'salary_max' => 'nullable|numeric|gte:salary_min',
-            'location' => 'nullable|string|max:255',
-            'job_type' => 'required|in:full_time,part_time,contract,internship,remote',
-            'experience_level' => 'required|in:entry,mid,senior,executive',
-            'start_date' => 'nullable|date',
-'end_date' => 'nullable|date|after_or_equal:start_date',
-            'skills' => 'nullable|array',
-            'skills.*' => 'exists:skills,id',
-            'company_id' => $this->user()->role?->name === 'admin' ? 'required|exists:companies,id' : 'nullable',
-        ];
+public function rules(): array
+{
+    $rules = [
+        'category_id' => 'required|exists:categories,id',
+        'title' => 'required|string|max:255',
+        'description' => 'required|string',
+        'requirements' => 'nullable|string',
+        'salary_min' => 'nullable|numeric|min:0',
+        'salary_max' => 'nullable|numeric|gte:salary_min',
+        'location' => 'nullable|string|max:255',
+        'job_type' => 'required|in:full_time,part_time,contract,internship,remote',
+        'experience_level' => 'required|in:entry,mid,senior,executive',
+        'start_date' => 'nullable|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'skills' => 'nullable|array',
+        'skills.*' => 'exists:skills,id',
+    ];
+
+    if ($this->user()->role?->name === 'admin') {
+        $rules['company_id'] = 'required|exists:companies,id';
     }
+
+    return $rules;
+}
 
     public function messages(): array
     {
