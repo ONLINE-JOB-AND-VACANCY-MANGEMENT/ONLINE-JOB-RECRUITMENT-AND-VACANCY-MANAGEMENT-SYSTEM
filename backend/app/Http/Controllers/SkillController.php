@@ -7,10 +7,12 @@ use Illuminate\Http\Request;
 
 class SkillController extends Controller
 {
-    public function index()
-    {
+public function index()
+{
+    return \Illuminate\Support\Facades\Cache::remember('skills.all', 3600, function () {
         return Skill::orderBy('name')->get();
-    }
+    });
+}
 
     public function store(Request $request)
     {

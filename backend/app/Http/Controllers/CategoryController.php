@@ -8,10 +8,12 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    public function index()
-    {
+public function index()
+{
+    return \Illuminate\Support\Facades\Cache::remember('categories.all', 3600, function () {
         return Category::withCount('jobs')->orderBy('name')->get();
-    }
+    });
+}
 
     public function store(StoreCategoryRequest $request)
     {

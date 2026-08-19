@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\NotificationController;
 
+
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 // Public
@@ -34,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
     Route::get('/my-company', [CompanyController::class, 'myCompany']);
     Route::put('/my-company', [CompanyController::class, 'update']);
+    Route::post('/my-company', [CompanyController::class, 'store']);
 });
 
 // Admin only

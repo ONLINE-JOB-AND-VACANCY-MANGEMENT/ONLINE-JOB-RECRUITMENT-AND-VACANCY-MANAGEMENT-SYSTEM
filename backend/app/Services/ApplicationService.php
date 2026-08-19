@@ -53,15 +53,15 @@ class ApplicationService
         return $application->load(['user', 'job', 'resume']);
     }
 
-    public function listForJobSeeker(int $userId)
-    {
-        return Application::where('user_id', $userId)->with(['job.company', 'resume'])->latest()->paginate(15);
-    }
+ public function listForJobSeeker(int $userId)
+{
+    return Application::where('user_id', $userId)->with(['user', 'job.company', 'resume', 'exam', 'interview'])->latest()->paginate(15);
+}
 
-    public function listForJob(Job $job)
-    {
-        return $job->applications()->with(['user', 'resume'])->latest()->paginate(15);
-    }
+public function listForJob(Job $job)
+{
+    return $job->applications()->with(['user', 'job.company', 'resume', 'exam', 'interview'])->latest()->paginate(15);
+}
 
     public function scheduleExam(Application $application, array $data): Application
 {
