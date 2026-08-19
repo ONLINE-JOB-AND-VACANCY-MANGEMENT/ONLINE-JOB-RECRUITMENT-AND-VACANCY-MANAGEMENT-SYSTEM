@@ -22,6 +22,7 @@ public function index()
 
         $request->validate(['name' => 'required|string|max:255|unique:skills,name']);
         $skill = Skill::create(['name' => $request->name]);
+        Cache::forget('skills.all');
 
         return response()->json(['message' => 'Skill created', 'skill' => $skill], 201);
     }
@@ -33,6 +34,7 @@ public function index()
         }
 
         $skill->delete();
+        Cache::forget('skills.all');
         return response()->json(['message' => 'Skill deleted']);
     }
 }

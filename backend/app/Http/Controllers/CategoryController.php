@@ -15,33 +15,39 @@ public function index()
     });
 }
 
-    public function store(StoreCategoryRequest $request)
-    {
-        $category = Category::create([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-        ]);
+public function store(StoreCategoryRequest $request)
+{
+    $category = Category::create([
+        'name' => $request->name,
+        'slug' => Str::slug($request->name),
+    ]);
 
-        return response()->json(['message' => 'Category created', 'category' => $category], 201);
+    \Illuminate\Support\Facades\Cache::forget('categories.all');
+
+    return response()->json(['message' => 'Category created', 'category' => $category], 201);
+}
+
+public function update(StoreCategoryRequest $request, Category $category)
+{
+    $category->update([
+        'name' => $request->name,
+        'slug' => Str::slug($request->name),
+    ]);
+
+    \Illuminate\Support\Facades\Cache::forget('categories.all');
+
+    return response()->json(['message' => 'Category updated', 'category' => $category]);
+}
+
+public function destroy(Category $category)
+{
+    if (auth()->user()->role?->name !== 'admin') {
+        return response()->json(['message' => 'Forbidden'], 403);
     }
 
-    public function update(StoreCategoryRequest $request, Category $category)
-    {
-        $category->update([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-        ]);
+    $category->delete();
+    \Illuminate\Support\Facades\Cache::forget('categories.all');
 
-        return response()->json(['message' => 'Category updated', 'category' => $category]);
-    }
-
-    public function destroy(Category $category)
-    {
-        if (auth()->user()->role?->name !== 'admin') {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
-        $category->delete();
-        return response()->json(['message' => 'Category deleted']);
-    }
+    return response()->json(['message' => 'Category deleted']);
+}
 }
