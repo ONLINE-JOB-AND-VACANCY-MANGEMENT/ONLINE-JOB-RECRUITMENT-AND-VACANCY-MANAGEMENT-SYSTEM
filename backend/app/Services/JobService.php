@@ -9,7 +9,7 @@ class JobService
 {
     public function list(array $filters)
     {
-        $query = Job::query()->with(['company', 'category', 'skills'])->withCount('applications');
+        $query = Job::query()->with(['category', 'skills'])->withCount('applications');
 
         if (!empty($filters['search'])) {
             $query->where('title', 'like', '%' . $filters['search'] . '%');
@@ -31,26 +31,53 @@ class JobService
         }
 
         $query->where('status', 'open');
+        $query->where('visibility', 'public');
 
         return $query->latest()->paginate($filters['per_page'] ?? 15);
     }
+  public function listInternal(array $filters)
+{
+    $query = Job::query()->with(['category', 'skills'])->withCount('applications');
 
+    if (!empty($filters['search'])) {
+        $query->where('title', 'like', '%' . $filters['search'] . '%');
+    }
+    if (!empty($filters['category_id'])) {
+        $query->where('category_id', $filters['category_id']);
+    }
+
+    $query->where('status', 'open');
+    // No visibility filter — internal staff see both internal AND public jobs
+
+    return $query->latest()->paginate($filters['per_page'] ?? 15);
+}
 public function create(array $data): Job
 {
-    $user = Auth::user();
-    $companyId = $user->role?->name === 'admin' ? $data['company_id'] : $user->company->id;
+    $requisition = \App\Models\JobRequisition::findOrFail($data['requisition_id']);
+
+    if ($requisition->status !== 'ready_to_post') {
+        throw new \Exception('Only requisitions marked ready-to-post can be turned into a job posting.');
+    }
+
+    if ($requisition->jobPosting()->exists()) {
+        throw new \Exception('This requisition already has a job posting.');
+    }
 
     $data['status'] = $data['status'] ?? 'open';
+    $data['visibility'] = 'internal';
+    $data['published_at'] = now();
+    $data['posted_by'] = \Illuminate\Support\Facades\Auth::id();
+    $data['category_id'] = $requisition->category_id;
 
-    $job = \App\Models\Company::find($companyId)->jobs()->create($data);
-    $data['status'] = $data['status'] ?? 'open';
+    $job = \App\Models\Job::create($data);
 
     if (!empty($data['skills'])) {
         $job->skills()->sync($data['skills']);
     }
 
-    return $job->load(['company', 'category', 'skills']);
-}
+    return $job->load(['category', 'skills', 'requisition']);
+} 
+
     public function update(Job $job, array $data): Job
     {
         $job->update($data);
@@ -59,7 +86,7 @@ public function create(array $data): Job
             $job->skills()->sync($data['skills'] ?? []);
         }
 
-        return $job->load(['company', 'category', 'skills']);
+        return $job->load(['category', 'skills']);
     }
 
     public function delete(Job $job): void

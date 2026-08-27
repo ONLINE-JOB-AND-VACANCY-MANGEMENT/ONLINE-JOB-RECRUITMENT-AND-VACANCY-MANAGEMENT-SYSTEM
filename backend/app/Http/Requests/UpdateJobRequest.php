@@ -6,35 +6,40 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateJobRequest extends FormRequest
 {
-public function authorize(): bool
-{
-    $job = $this->route('job');
-    $user = $this->user();
+    public function authorize(): bool
+    {
+        $job = $this->route('job');
+        $user = $this->user();
 
-    if ($user->role?->name === 'admin') {
-        return true;
+        if ($user->role?->name === 'admin') {
+            return true;
+        }
+
+        // Employer can update jobs they personally posted
+        if ($user->role?->name === 'employer') {
+            return (int) $job->posted_by === (int) $user->id;
+        }
+
+        return false;
     }
-
-    return $user->company && $job->company_id === $user->company->id;
-}
 
     public function rules(): array
     {
         return [
-            'category_id' => 'sometimes|exists:categories,id',
-            'title' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'requirements' => 'nullable|string',
-            'salary_min' => 'nullable|numeric|min:0',
-            'salary_max' => 'nullable|numeric|gte:salary_min',
-            'location' => 'nullable|string|max:255',
-            'job_type' => 'sometimes|in:full_time,part_time,contract,internship,remote',
+            'category_id'      => 'sometimes|exists:categories,id',
+            'title'            => 'sometimes|string|max:255',
+            'description'      => 'sometimes|string',
+            'requirements'     => 'nullable|string',
+            'salary_min'       => 'nullable|numeric|min:0',
+            'salary_max'       => 'nullable|numeric|gte:salary_min',
+            'location'         => 'nullable|string|max:255',
+            'job_type'         => 'sometimes|in:full_time,part_time,contract,internship,remote',
             'experience_level' => 'sometimes|in:entry,mid,senior,executive',
-            'status' => 'sometimes|in:open,closed,draft',
-            'start_date' => 'nullable|date',
-'end_date' => 'nullable|date|after_or_equal:start_date',
-            'skills' => 'nullable|array',
-            'skills.*' => 'exists:skills,id',
+            'status'           => 'sometimes|in:open,closed,draft',
+            'start_date'       => 'nullable|date',
+            'end_date'         => 'nullable|date|after_or_equal:start_date',
+            'skills'           => 'nullable|array',
+            'skills.*'         => 'exists:skills,id',
         ];
     }
 }

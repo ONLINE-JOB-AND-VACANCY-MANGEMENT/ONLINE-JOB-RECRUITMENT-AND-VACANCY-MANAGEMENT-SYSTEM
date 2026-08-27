@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             CategorySeeder::class,
             SkillSeeder::class,
+            CategorySkillSeeder::class,
             UserSeeder::class,
             CompanySeeder::class,
         ]);

@@ -31,15 +31,9 @@ class ApplicationController extends Controller
         ], 201);
     }
 
-    public function myApplications(Request $request)
-    {
-        $applications = $this->applicationService->listForJobSeeker($request->user()->id);
-        return ApplicationResource::collection($applications);
-    }
-
     public function jobApplicants(Request $request, Job $job)
     {
-        if (!$job->company || $job->company_id !== $request->user()->company?->id) {
+        if ($request->user()->role?->name !== 'employer') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -47,9 +41,15 @@ class ApplicationController extends Controller
         return ApplicationResource::collection($applications);
     }
 
+    public function myApplications(Request $request)
+    {
+        $applications = $this->applicationService->listForJobSeeker($request->user()->id);
+        return ApplicationResource::collection($applications);
+    }
+
     public function updateStatus(Request $request, Application $application)
     {
-        if (!$application->job->company || $application->job->company_id !== $request->user()->company?->id) {
+        if ($request->user()->role?->name !== 'employer') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -61,22 +61,24 @@ class ApplicationController extends Controller
     }
 
     public function scheduleExam(Request $request, Application $application)
-{
-    if ($application->job->company_id !== $request->user()->company?->id) {
-        return response()->json(['message' => 'Forbidden'], 403);
-    }
-    $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
-    $application = $this->applicationService->scheduleExam($application, $data);
-    return response()->json(['message' => 'Exam scheduled', 'application' => new ApplicationResource($application)]);
-}
+    {
+        if ($request->user()->role?->name !== 'employer') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
 
-public function scheduleInterview(Request $request, Application $application)
-{
-    if ($application->job->company_id !== $request->user()->company?->id) {
-        return response()->json(['message' => 'Forbidden'], 403);
+        $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
+        $application = $this->applicationService->scheduleExam($application, $data);
+        return response()->json(['message' => 'Exam scheduled', 'application' => new ApplicationResource($application)]);
     }
-    $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
-    $application = $this->applicationService->scheduleInterview($application, $data);
-    return response()->json(['message' => 'Interview scheduled', 'application' => new ApplicationResource($application)]);
-}
+
+    public function scheduleInterview(Request $request, Application $application)
+    {
+        if ($request->user()->role?->name !== 'employer') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
+        $application = $this->applicationService->scheduleInterview($application, $data);
+        return response()->json(['message' => 'Interview scheduled', 'application' => new ApplicationResource($application)]);
+    }
 }

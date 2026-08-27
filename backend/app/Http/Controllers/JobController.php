@@ -21,28 +21,44 @@ class JobController extends Controller
 
     public function show(Job $job)
     {
-        return new JobResource($job->load(['company', 'category', 'skills']));
+        return new JobResource($job->load(['category', 'skills']));
     }
 
-    public function store(StoreJobRequest $request)
-    {
+ public function store(StoreJobRequest $request)
+{
+    try {
         $job = $this->jobService->create($request->validated());
-        return response()->json(['message' => 'Job posted successfully', 'job' => new JobResource($job)], 201);
+    } catch (\Exception $e) {
+        return response()->json(['message' => $e->getMessage()], 409);
     }
 
+    return response()->json(['message' => 'Job posted successfully', 'job' => new JobResource($job)], 201);
+}
+      public function destroy(Job $job)
+{
+    if ($job->posted_by !== auth()->id() && auth()->user()->role?->name !== 'admin') {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
+    if ($job->applications()->count() > 0) {
+        return response()->json(['message' => 'Cannot delete a job that already has applicants.'], 409);
+    }
+
+    $this->jobService->delete($job);
+    return response()->json(['message' => 'Job deleted successfully']);
+}
+    public function internalIndex(Request $request)
+{
+    if ($request->user()->role?->name === 'job_seeker') {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
+    $jobs = $this->jobService->listInternal($request->all());
+    return JobResource::collection($jobs);
+}
     public function update(UpdateJobRequest $request, Job $job)
     {
         $job = $this->jobService->update($job, $request->validated());
         return response()->json(['message' => 'Job updated successfully', 'job' => new JobResource($job)]);
-    }
-
-    public function destroy(Job $job)
-    {
-        if (!$job->company || $job->company_id !== auth()->user()->company?->id) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
-        $this->jobService->delete($job);
-        return response()->json(['message' => 'Job deleted successfully']);
     }
 }

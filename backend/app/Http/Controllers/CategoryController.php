@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCategoryRequest;
 use App\Models\Category;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
@@ -38,7 +39,22 @@ public function update(StoreCategoryRequest $request, Category $category)
 
     return response()->json(['message' => 'Category updated', 'category' => $category]);
 }
+public function linkSkills(Request $request, Category $category)
+{
+    if ($request->user()->role?->name !== 'employer') {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
 
+    $request->validate(['skills' => 'required|array', 'skills.*' => 'exists:skills,id']);
+    $category->skills()->syncWithoutDetaching($request->skills);
+
+    return response()->json(['message' => 'Skills linked', 'category' => $category->load('skills')]);
+}
+
+public function suggestedSkills(Category $category)
+{
+    return $category->load('skills')->skills;
+}
 public function destroy(Category $category)
 {
     if (auth()->user()->role?->name !== 'admin') {

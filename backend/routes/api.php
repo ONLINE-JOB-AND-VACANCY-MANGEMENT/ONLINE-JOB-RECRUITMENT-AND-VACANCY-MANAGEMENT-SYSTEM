@@ -10,6 +10,34 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\JobRequisitionController;
+use App\Http\Controllers\JobFeedController;
+
+Route::get('/feed/jobs', [JobFeedController::class, 'index']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/internal-jobs', [JobController::class, 'internalIndex']);
+});
+
+Route::middleware(['auth:sanctum', 'role:manager'])->group(function () {
+    Route::post('/requisitions', [JobRequisitionController::class, 'store']);
+    Route::put('/requisitions/{requisition}', [JobRequisitionController::class, 'update']);
+    Route::post('/requisitions/{requisition}/submit', [JobRequisitionController::class, 'submit']);
+});
+
+Route::get('/categories/{category}/skills', [CategoryController::class, 'suggestedSkills']);
+Route::post('/categories/{category}/skills', [CategoryController::class, 'linkSkills'])->middleware(['auth:sanctum', 'role:employer']);
+
+Route::middleware(['auth:sanctum', 'role:manager,employer'])->group(function () {
+    Route::get('/requisitions', [JobRequisitionController::class, 'index']);
+    Route::get('/requisitions/{requisition}', [JobRequisitionController::class, 'show']);
+});
+
+Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
+    Route::post('/requisitions/{requisition}/approve', [JobRequisitionController::class, 'approve']);
+    Route::post('/requisitions/{requisition}/reject', [JobRequisitionController::class, 'reject']);
+    Route::post('/requisitions/{requisition}/ready-to-post', [JobRequisitionController::class, 'markReadyToPost']);
+});
 
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -47,6 +75,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::delete('/skills/{skill}', [SkillController::class, 'destroy']);
     Route::get('/users', [UserController::class, 'index']);
     Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive']);
+    Route::post('/staff', [UserController::class, 'storeStaff']);
 });
 
 Route::post('/register', [AuthController::class, 'register']);

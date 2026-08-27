@@ -31,12 +31,15 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+  public function requisitions()
+{
+    return $this->hasMany(JobRequisition::class, 'requested_by');
+}
 
-    public function company()
-    {
-        return $this->hasOne(Company::class);
-    }
-
+public function postedJobs()
+{
+    return $this->hasMany(Job::class, 'posted_by');
+}
     public function applications()
     {
         return $this->hasMany(Application::class);

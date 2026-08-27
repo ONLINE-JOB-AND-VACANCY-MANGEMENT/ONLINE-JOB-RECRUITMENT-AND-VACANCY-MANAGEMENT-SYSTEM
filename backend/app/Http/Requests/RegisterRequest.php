@@ -18,7 +18,7 @@ class RegisterRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => ['required', 'confirmed', Password::min(8)],
-            'role' => 'required|in:job_seeker,employer',
+            'role' => 'required|in:job_seeker',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
         ];

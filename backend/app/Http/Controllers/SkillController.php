@@ -4,15 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Skill;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SkillController extends Controller
 {
-public function index()
-{
-    return \Illuminate\Support\Facades\Cache::remember('skills.all', 3600, function () {
-        return Skill::orderBy('name')->get();
-    });
-}
+    public function index()
+    {
+        return Cache::remember('skills.all', 3600, function () {
+            return Skill::orderBy('name')->get();
+        });
+    }
 
     public function store(Request $request)
     {

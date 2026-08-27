@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreStaffRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -47,4 +48,19 @@ class UserController extends Controller
 
         return response()->json(['message' => 'User status updated', 'user' => new UserResource($user)]);
     }
+
+    public function storeStaff(StoreStaffRequest $request)
+{
+    $role = \App\Models\Role::where('name', $request->role)->firstOrFail();
+
+    $user = \App\Models\User::create([
+        'role_id' => $role->id,
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+        'phone' => $request->phone,
+    ]);
+
+    return response()->json(['message' => 'Staff account created', 'user' => new UserResource($user->load('role'))], 201);
+}
 }
