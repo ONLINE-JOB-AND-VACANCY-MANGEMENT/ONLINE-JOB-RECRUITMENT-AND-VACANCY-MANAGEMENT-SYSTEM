@@ -21,6 +21,9 @@ export default function Navbar() {
           {user?.role === 'job_seeker' && (
             <Link to="/my-applications" className="hp-nav-link">My applications</Link>
           )}
+          {user?.role === 'employer' && (
+            <Link to="/employer/jobs" className="hp-nav-link">Manage jobs</Link>
+          )}
           {!user && <Link to="/login" className="hp-nav-link">Log in</Link>}
           {!user && (
             <Link to="/register" className="btn hp-btn-accent btn-sm">Get started</Link>

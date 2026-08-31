@@ -6,6 +6,8 @@ import JobFeed from './pages/JobFeed'
 import JobDetail from './pages/JobDetail'
 import ApplyForm from './pages/ApplyForm'
 import MyApplications from './pages/MyApplications'
+import EmployerJobs from './pages/employer/EmployerJobs'
+import JobApplicants from './pages/employer/JobApplicants'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import NotFound from './pages/NotFound'
@@ -31,6 +33,22 @@ export default function App() {
           element={
             <ProtectedRoute roles={['job_seeker']}>
               <MyApplications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/jobs"
+          element={
+            <ProtectedRoute roles={['employer']}>
+              <EmployerJobs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/jobs/:id/applicants"
+          element={
+            <ProtectedRoute roles={['employer']}>
+              <JobApplicants />
             </ProtectedRoute>
           }
         />

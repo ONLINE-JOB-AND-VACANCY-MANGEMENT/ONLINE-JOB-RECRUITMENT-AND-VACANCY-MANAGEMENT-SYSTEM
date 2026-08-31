@@ -94,6 +94,15 @@ a { color: inherit; }
   transition: background 0.15s ease, color 0.15s ease;
 }
 .hp-btn-outline:hover { background: var(--hp-ink); color: #fff; }
+.hp-btn-reject {
+  background: transparent;
+  border: 1px solid var(--hp-rose);
+  color: var(--hp-rose);
+  font-weight: 600;
+  border-radius: 8px;
+}
+.hp-btn-reject:hover { background: var(--hp-rose); color: #fff; }
+.hp-schedule-form { background: var(--hp-paper); border: 1px solid var(--hp-line); border-radius: 10px; padding: 1rem; }
 
 .hp-hero { background: linear-gradient(180deg, #FFFFFF 0%, var(--hp-paper) 100%); border-bottom: 1px solid var(--hp-line); }
 .hp-hero-sub { color: var(--hp-slate); font-size: 1.1rem; max-width: 42ch; margin-bottom: 2rem; }
