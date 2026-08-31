@@ -6,8 +6,23 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('auth_user')
-    return stored ? JSON.parse(stored) : null
+    try {
+      const stored = localStorage.getItem('auth_user')
+      if (!stored) return null
+      const parsed = JSON.parse(stored)
+      // Guard against stale/malformed cached entries (e.g. missing role)
+      // from an older app version or a backend response shape change.
+      if (!parsed || typeof parsed !== 'object' || !parsed.role) {
+        localStorage.removeItem('auth_user')
+        localStorage.removeItem('auth_token')
+        return null
+      }
+      return parsed
+    } catch {
+      localStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_token')
+      return null
+    }
   })
   const [loading, setLoading] = useState(true)
 

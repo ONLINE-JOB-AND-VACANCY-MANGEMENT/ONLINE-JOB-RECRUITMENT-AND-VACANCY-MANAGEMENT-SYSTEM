@@ -7,14 +7,14 @@ use App\Models\Job;
 
 class JobFeedController extends Controller
 {
-    public function index()
-    {
-        $jobs = Job::where('visibility', 'public')
-            ->where('status', 'open')
-            ->with(['category', 'skills'])
-            ->latest()
-            ->get();
+   public function index()
+{
+    $jobs = Job::where('visibility', 'public')
+        ->where('status', 'open')
+        ->with(['category', 'skills', 'postedBy'])
+        ->latest()
+        ->get();
 
-        return JobResource::collection($jobs);
-    }
+    return JobResource::collection($jobs);
+}
 }

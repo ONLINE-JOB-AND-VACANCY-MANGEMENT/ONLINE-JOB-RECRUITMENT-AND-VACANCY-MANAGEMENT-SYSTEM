@@ -27,7 +27,7 @@ export default function Navbar() {
           )}
           {user && (
             <div className="d-flex align-items-center gap-2">
-              <span className="hp-user-chip">{user.name} · {user.role.replace('_', ' ')}</span>
+              <span className="hp-user-chip">{user.name} · {user.role?.replace('_', ' ') ?? 'no role'}</span>
               <button onClick={handleLogout} className="btn btn-sm hp-btn-outline">Log out</button>
             </div>
           )}

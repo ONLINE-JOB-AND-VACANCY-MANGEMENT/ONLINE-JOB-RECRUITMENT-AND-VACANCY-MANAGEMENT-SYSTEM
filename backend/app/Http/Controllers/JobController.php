@@ -19,10 +19,10 @@ class JobController extends Controller
         return JobResource::collection($jobs);
     }
 
-    public function show(Job $job)
-    {
-        return new JobResource($job->load(['category', 'skills']));
-    }
+   public function show(Job $job)
+{
+    return new JobResource($job->load(['category', 'skills', 'postedBy']));
+}
 
  public function store(StoreJobRequest $request)
 {

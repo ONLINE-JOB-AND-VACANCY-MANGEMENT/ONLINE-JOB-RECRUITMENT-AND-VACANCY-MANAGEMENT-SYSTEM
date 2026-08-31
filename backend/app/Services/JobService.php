@@ -9,7 +9,7 @@ class JobService
 {
     public function list(array $filters)
     {
-        $query = Job::query()->with(['category', 'skills'])->withCount('applications');
+        $query = Job::query()->with(['category', 'skills', 'postedBy'])->withCount('applications');
 
         if (!empty($filters['search'])) {
             $query->where('title', 'like', '%' . $filters['search'] . '%');
@@ -37,7 +37,7 @@ class JobService
     }
   public function listInternal(array $filters)
 {
-    $query = Job::query()->with(['category', 'skills'])->withCount('applications');
+    $query = Job::query()->with(['category', 'skills', 'postedBy'])->withCount('applications');
 
     if (!empty($filters['search'])) {
         $query->where('title', 'like', '%' . $filters['search'] . '%');
@@ -75,7 +75,7 @@ public function create(array $data): Job
         $job->skills()->sync($data['skills']);
     }
 
-    return $job->load(['category', 'skills', 'requisition']);
+    return $job->load(['category', 'skills', 'requisition', 'postedBy']);
 } 
 
     public function update(Job $job, array $data): Job
@@ -86,7 +86,7 @@ public function create(array $data): Job
             $job->skills()->sync($data['skills'] ?? []);
         }
 
-        return $job->load(['category', 'skills']);
+        return $job->load(['category', 'skills', 'postedBy']);
     }
 
     public function delete(Job $job): void
