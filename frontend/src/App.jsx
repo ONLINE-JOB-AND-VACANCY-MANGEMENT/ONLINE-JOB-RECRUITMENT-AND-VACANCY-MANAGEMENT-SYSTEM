@@ -8,6 +8,10 @@ import ApplyForm from './pages/ApplyForm'
 import MyApplications from './pages/MyApplications'
 import EmployerJobs from './pages/employer/EmployerJobs'
 import JobApplicants from './pages/employer/JobApplicants'
+import ManagerRequisitions from './pages/manager/ManagerRequisitions'
+import RequisitionForm from './pages/manager/RequisitionForm'
+import EmployerRequisitions from './pages/employer/EmployerRequisitions'
+import CreateJobFromRequisition from './pages/employer/CreateJobFromRequisition'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import NotFound from './pages/NotFound'
@@ -49,6 +53,46 @@ export default function App() {
           element={
             <ProtectedRoute roles={['employer']}>
               <JobApplicants />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/requisitions"
+          element={
+            <ProtectedRoute roles={['manager']}>
+              <ManagerRequisitions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/requisitions/new"
+          element={
+            <ProtectedRoute roles={['manager']}>
+              <RequisitionForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/requisitions/:id/edit"
+          element={
+            <ProtectedRoute roles={['manager']}>
+              <RequisitionForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/requisitions"
+          element={
+            <ProtectedRoute roles={['employer']}>
+              <EmployerRequisitions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/requisitions/:id/create-job"
+          element={
+            <ProtectedRoute roles={['employer']}>
+              <CreateJobFromRequisition />
             </ProtectedRoute>
           }
         />

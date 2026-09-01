@@ -22,7 +22,13 @@ export default function Navbar() {
             <Link to="/my-applications" className="hp-nav-link">My applications</Link>
           )}
           {user?.role === 'employer' && (
-            <Link to="/employer/jobs" className="hp-nav-link">Manage jobs</Link>
+            <>
+              <Link to="/employer/jobs" className="hp-nav-link">Manage jobs</Link>
+              <Link to="/employer/requisitions" className="hp-nav-link">Requisitions</Link>
+            </>
+          )}
+          {user?.role === 'manager' && (
+            <Link to="/manager/requisitions" className="hp-nav-link">My requisitions</Link>
           )}
           {!user && <Link to="/login" className="hp-nav-link">Log in</Link>}
           {!user && (

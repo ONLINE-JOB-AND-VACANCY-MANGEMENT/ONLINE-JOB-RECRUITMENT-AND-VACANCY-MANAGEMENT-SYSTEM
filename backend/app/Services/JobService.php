@@ -68,8 +68,13 @@ public function create(array $data): Job
     $data['published_at'] = now();
     $data['posted_by'] = \Illuminate\Support\Facades\Auth::id();
     $data['category_id'] = $requisition->category_id;
+    $data['category_id'] = $requisition->category_id;
+     $data['salary_min'] = $data['salary_min'] ?? $requisition->salary_min;
+    $data['salary_max'] = $data['salary_max'] ?? $requisition->salary_max;
 
     $job = \App\Models\Job::create($data);
+
+  
 
     if (!empty($data['skills'])) {
         $job->skills()->sync($data['skills']);

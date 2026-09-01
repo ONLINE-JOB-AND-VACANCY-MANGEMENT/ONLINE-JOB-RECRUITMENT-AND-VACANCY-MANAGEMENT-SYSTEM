@@ -53,7 +53,7 @@ class ApplicationController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $request->validate(['status' => 'required|in:applied,shortlisted,interviewing,hired,rejected']);
+        $request->validate(['status' => 'required|in:applied,shortlisted,hired,rejected']);
 
         $application = $this->applicationService->updateStatus($application, $request->status);
 

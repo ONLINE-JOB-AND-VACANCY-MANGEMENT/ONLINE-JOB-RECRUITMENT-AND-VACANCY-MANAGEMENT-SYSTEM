@@ -103,6 +103,20 @@ a { color: inherit; }
 }
 .hp-btn-reject:hover { background: var(--hp-rose); color: #fff; }
 .hp-schedule-form { background: var(--hp-paper); border: 1px solid var(--hp-line); border-radius: 10px; padding: 1rem; }
+.hp-skill-check {
+  display: inline-block;
+  cursor: pointer;
+  background: var(--hp-paper);
+  border: 1px solid var(--hp-line);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  margin: 0 0.3rem 0.3rem 0;
+  color: var(--hp-ink);
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.hp-skill-check--active { background: var(--hp-accent); border-color: var(--hp-accent-dark); font-weight: 600; }
 
 .hp-hero { background: linear-gradient(180deg, #FFFFFF 0%, var(--hp-paper) 100%); border-bottom: 1px solid var(--hp-line); }
 .hp-hero-sub { color: var(--hp-slate); font-size: 1.1rem; max-width: 42ch; margin-bottom: 2rem; }
