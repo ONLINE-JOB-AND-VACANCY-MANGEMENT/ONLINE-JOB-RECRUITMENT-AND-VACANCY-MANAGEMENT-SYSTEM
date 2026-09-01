@@ -30,6 +30,13 @@ export default function Navbar() {
           {user?.role === 'manager' && (
             <Link to="/manager/requisitions" className="hp-nav-link">My requisitions</Link>
           )}
+          {user?.role === 'admin' && (
+            <>
+              <Link to="/admin/users" className="hp-nav-link">Staff</Link>
+              <Link to="/admin/categories" className="hp-nav-link">Categories</Link>
+              <Link to="/admin/skills" className="hp-nav-link">Skills</Link>
+            </>
+          )}
           {!user && <Link to="/login" className="hp-nav-link">Log in</Link>}
           {!user && (
             <Link to="/register" className="btn hp-btn-accent btn-sm">Get started</Link>

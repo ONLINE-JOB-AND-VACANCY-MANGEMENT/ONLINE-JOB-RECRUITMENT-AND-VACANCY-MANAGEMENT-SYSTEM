@@ -12,6 +12,9 @@ import ManagerRequisitions from './pages/manager/ManagerRequisitions'
 import RequisitionForm from './pages/manager/RequisitionForm'
 import EmployerRequisitions from './pages/employer/EmployerRequisitions'
 import CreateJobFromRequisition from './pages/employer/CreateJobFromRequisition'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminCategories from './pages/admin/AdminCategories'
+import AdminSkills from './pages/admin/AdminSkills'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import NotFound from './pages/NotFound'
@@ -93,6 +96,30 @@ export default function App() {
           element={
             <ProtectedRoute roles={['employer']}>
               <CreateJobFromRequisition />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/categories"
+          element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminCategories />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/skills"
+          element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminSkills />
             </ProtectedRoute>
           }
         />

@@ -6,22 +6,10 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateJobRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $job = $this->route('job');
-        $user = $this->user();
-
-        if ($user->role?->name === 'admin') {
-            return true;
-        }
-
-        // Employer can update jobs they personally posted
-        if ($user->role?->name === 'employer') {
-            return (int) $job->posted_by === (int) $user->id;
-        }
-
-        return false;
-    }
+   public function authorize(): bool
+{
+    return in_array($this->user()->role?->name, ['admin', 'employer']);
+}
 
     public function rules(): array
     {
@@ -36,6 +24,7 @@ class UpdateJobRequest extends FormRequest
             'job_type'         => 'sometimes|in:full_time,part_time,contract,internship,remote',
             'experience_level' => 'sometimes|in:entry,mid,senior,executive',
             'status'           => 'sometimes|in:open,closed,draft',
+            'visibility'       => 'sometimes|in:internal,public',
             'start_date'       => 'nullable|date',
             'end_date'         => 'nullable|date|after_or_equal:start_date',
             'skills'           => 'nullable|array',

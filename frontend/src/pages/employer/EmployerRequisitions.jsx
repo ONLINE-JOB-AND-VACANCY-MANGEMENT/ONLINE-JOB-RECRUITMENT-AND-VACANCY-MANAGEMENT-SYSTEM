@@ -121,6 +121,11 @@ export default function EmployerRequisitions() {
                   <p className="hp-card-meta mb-0">
                     {req.department} · {req.category} · Requested by {req.requested_by?.name}
                   </p>
+                  {(req.salary_min || req.salary_max) && (
+                    <p className="hp-salary mb-0 mt-1">
+                      {req.salary_min ?? '—'} – {req.salary_max ?? '—'}
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -35,7 +35,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        return UserResource::collection(User::with('role')->paginate(20));
+        return UserResource::collection(User::with('role')->latest()->paginate(20));
     }
 
     public function toggleActive(Request $request, User $user)

@@ -83,6 +83,12 @@ export default function ManagerRequisitions() {
 
             <StatusPipeline stages={REQ_STAGES} current={req.status} rejectedKey="rejected" rejectedLabel="Rejected" />
 
+            {(req.salary_min || req.salary_max) && (
+              <p className="hp-salary mt-3 mb-0">
+                {req.salary_min ?? '—'} – {req.salary_max ?? '—'}
+              </p>
+            )}
+
             {req.status === 'rejected' && req.rejection_reason && (
               <p className="hp-muted mt-3 mb-0">Reason: {req.rejection_reason}</p>
             )}
