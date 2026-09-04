@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Application;
 use App\Models\Job;
+use App\Models\Notification;
 use App\Models\Resume;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,14 +13,14 @@ class ApplicationService
     public function __construct(protected FileUploadService $fileUploadService) {}
 
     public function apply(Job $job, array $data, $resumeFile = null): Application
-    {   
-            if ($job->status !== 'open') {
-        throw new \Exception('This job is no longer accepting applications.');
-    }
+    {
+        if ($job->status !== 'open') {
+            throw new \Exception('This job is no longer accepting applications.');
+        }
 
-    if ($job->end_date && now()->gt($job->end_date)) {
-        throw new \Exception('The application deadline for this job has passed.');
-    } 
+        if ($job->end_date && now()->gt($job->end_date)) {
+            throw new \Exception('The application deadline for this job has passed.');
+        }
         $user = Auth::user();
 
         if (Application::where('user_id', $user->id)->where('job_posting_id', $job->id)->exists()) {
@@ -50,40 +51,67 @@ class ApplicationService
     public function updateStatus(Application $application, string $status): Application
     {
         $application->update(['status' => $status]);
-        return $application->load(['user', 'job', 'resume']);
+        $application->load(['user', 'job', 'resume']);
+
+        Notification::create([
+            'user_id' => $application->user_id,
+            'title' => 'Application status updated',
+            'message' => "Your application for \"{$application->job->title}\" is now: " . str_replace('_', ' ', $status) . '.',
+            'type' => 'application_status',
+        ]);
+
+        return $application;
     }
 
-public function listForJobSeeker(int $userId)
-{
-    return Application::where('user_id', $userId)->with(['user', 'job', 'resume', 'exam', 'interview'])->latest()->paginate(15);
-}
+    public function listForJobSeeker(int $userId)
+    {
+        return Application::where('user_id', $userId)->with(['user', 'job', 'resume', 'exam', 'interview'])->latest()->paginate(15);
+    }
 
-public function listForJob(Job $job)
-{
-    return $job->applications()->with(['user', 'job', 'resume', 'exam', 'interview'])->latest()->paginate(15);
-}
+    public function listForJob(Job $job)
+    {
+        return $job->applications()->with(['user', 'job', 'resume', 'exam', 'interview'])->latest()->paginate(15);
+    }
 
     public function scheduleExam(Application $application, array $data): Application
-{
-    $application->exam()->updateOrCreate([], [
-        'scheduled_at' => $data['scheduled_at'],
-        'location' => $data['location'] ?? null,
-        'mode' => $data['mode'] ?? 'onsite',
-        'status' => 'scheduled',
-    ]);
-    $application->update(['status' => 'exam_scheduled']);
-    return $application->load(['user', 'job', 'resume', 'exam']);
-}
+    {
+        $application->exam()->updateOrCreate([], [
+            'scheduled_at' => $data['scheduled_at'],
+            'location' => $data['location'] ?? null,
+            'mode' => $data['mode'] ?? 'onsite',
+            'status' => 'scheduled',
+        ]);
+        $application->update(['status' => 'exam_scheduled']);
+        $application->load(['user', 'job', 'resume', 'exam']);
 
-public function scheduleInterview(Application $application, array $data): Application
-{
-    $application->interview()->updateOrCreate([], [
-        'scheduled_at' => $data['scheduled_at'],
-        'location' => $data['location'] ?? null,
-        'mode' => $data['mode'] ?? 'onsite',
-        'status' => 'scheduled',
-    ]);
-    $application->update(['status' => 'interview_scheduled']);
-    return $application->load(['user', 'job', 'resume', 'interview']);
-}
+        Notification::create([
+            'user_id' => $application->user_id,
+            'title' => 'Exam scheduled',
+            'message' => "An exam has been scheduled for your application to \"{$application->job->title}\".",
+            'type' => 'exam_scheduled',
+        ]);
+
+        return $application;
+    }
+
+    public function scheduleInterview(Application $application, array $data): Application
+    {
+        $application->interview()->updateOrCreate([], [
+            'scheduled_at' => $data['scheduled_at'],
+            'location' => $data['location'] ?? null,
+            'mode' => $data['mode'] ?? 'onsite',
+            'status' => 'scheduled',
+        ]);
+        $application->update(['status' => 'interview_scheduled']);
+        $application->load(['user', 'job', 'resume', 'interview']);
+
+        Notification::create([
+            'user_id' => $application->user_id,
+            'title' => 'Interview scheduled',
+            'message' => "An interview has been scheduled for your application to \"{$application->job->title}\".",
+            'type' => 'interview_scheduled',
+        ]);
+
+        return $application;
+    }
 }

@@ -12,9 +12,9 @@ class Job extends Model
     protected $table = 'job_postings';
 
     protected $fillable = [
-        'category_id', 'requisition_id', 'company_id', 'posted_by', 'title', 'description', 'requirements',
+        'job_title_id', 'requisition_id', 'company_id', 'posted_by', 'title', 'description', 'requirements',
         'salary_min', 'salary_max', 'location', 'job_type', 'workplace_type',
-        'experience_level', 'status', 'visibility', 'published_at', 'start_date', 'end_date',
+        'experience_level', 'status', 'published_at', 'start_date', 'end_date',
     ];
 
     protected function casts(): array
@@ -28,9 +28,10 @@ class Job extends Model
         ];
     }
 
-    public function category()
+    // Category hierarchy is reached through the job title: jobTitle -> department -> mainCategory.
+    public function jobTitle()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(JobTitle::class);
     }
 
     public function requisition()

@@ -19,8 +19,12 @@ export default function Navbar() {
         <div className="d-flex align-items-center flex-wrap gap-3">
           <Link to="/jobs" className="hp-nav-link">Browse jobs</Link>
           {user?.role === 'job_seeker' && (
-            <Link to="/my-applications" className="hp-nav-link">My applications</Link>
+            <>
+              <Link to="/my-applications" className="hp-nav-link">My applications</Link>
+              <Link to="/bookmarks" className="hp-nav-link">Bookmarks</Link>
+            </>
           )}
+          {user && <Link to="/notifications" className="hp-nav-link">Notifications</Link>}
           {user?.role === 'employer' && (
             <>
               <Link to="/employer/jobs" className="hp-nav-link">Manage jobs</Link>

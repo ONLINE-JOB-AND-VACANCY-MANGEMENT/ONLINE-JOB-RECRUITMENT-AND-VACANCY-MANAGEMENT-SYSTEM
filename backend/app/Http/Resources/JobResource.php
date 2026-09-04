@@ -29,6 +29,9 @@ public function toArray(Request $request): array
         'posted_by' => $this->postedBy?->name,
         'applications_count' => $this->whenCounted('applications'),
         'created_at' => $this->created_at,
+        'is_bookmarked' => $request->user()?->role?->name === 'job_seeker'
+    ? $this->bookmarks()->where('user_id', $request->user()->id)->exists()
+    : false,
     ];
 }
 }

@@ -10,6 +10,7 @@ export default function JobDetail() {
   const navigate = useNavigate()
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [bookmarking, setBookmarking] = useState(false)
 
   useEffect(() => {
     api
@@ -28,6 +29,27 @@ export default function JobDetail() {
       return
     }
     navigate(`/jobs/${id}/apply`)
+  }
+
+  async function handleToggleBookmark() {
+    if (!user) {
+      navigate('/login', { state: { from: `/jobs/${id}` } })
+      return
+    }
+    setBookmarking(true)
+    try {
+      if (job.is_bookmarked) {
+        await api.delete(`/jobs/${id}/bookmark`)
+        setJob({ ...job, is_bookmarked: false })
+      } else {
+        await api.post(`/jobs/${id}/bookmark`)
+        setJob({ ...job, is_bookmarked: true })
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Could not update bookmark.')
+    } finally {
+      setBookmarking(false)
+    }
   }
 
   if (loading) return <div className="container py-5"><p className="hp-muted">Loading role…</p></div>
@@ -67,6 +89,13 @@ export default function JobDetail() {
             )}
             <button className="btn hp-btn-accent w-100" onClick={handleApplyClick}>
               Apply for this role
+            </button>
+            <button
+              className="btn hp-btn-outline w-100 mt-2"
+              onClick={handleToggleBookmark}
+              disabled={bookmarking}
+            >
+              {bookmarking ? 'Saving…' : job.is_bookmarked ? '★ Bookmarked' : '☆ Bookmark this role'}
             </button>
           </div>
         </div>

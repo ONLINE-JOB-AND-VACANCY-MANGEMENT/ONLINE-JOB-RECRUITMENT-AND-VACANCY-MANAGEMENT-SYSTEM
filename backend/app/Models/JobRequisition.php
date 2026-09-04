@@ -10,8 +10,8 @@ class JobRequisition extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id', 'requested_by', 'approved_by', 'department', 'job_title',
-        'target_hire_date', 'salary_min', 'salary_max', 'justification',
+        'job_title_id', 'requested_by', 'approved_by', 'job_type', 'target_hire_date',
+        'salary_min', 'salary_max', 'justification', 'requirements', 'start_date', 'end_date',
         'status', 'approved_at', 'rejection_reason',
     ];
 
@@ -19,15 +19,22 @@ class JobRequisition extends Model
     {
         return [
             'target_hire_date' => 'date',
+            'start_date' => 'date',
+            'end_date' => 'date',
             'approved_at' => 'datetime',
             'salary_min' => 'decimal:2',
             'salary_max' => 'decimal:2',
         ];
     }
 
-    public function category()
+    public function jobTitle()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(JobTitle::class);
+    }
+
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class, 'job_requisition_skill');
     }
 
     public function requestedBy()
