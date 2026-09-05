@@ -19,43 +19,49 @@ class JobController extends Controller
         return JobResource::collection($jobs);
     }
 
-   public function show(Job $job)
-{
-    return new JobResource($job->load(['category', 'skills', 'postedBy']));
-}
-
- public function store(StoreJobRequest $request)
-{
-    try {
-        $job = $this->jobService->create($request->validated());
-    } catch (\Exception $e) {
-        return response()->json(['message' => $e->getMessage()], 409);
+    public function show(Job $job)
+    {
+        return new JobResource($job->load(['jobTitle.department.mainCategory', 'skills']));
     }
 
-    return response()->json(['message' => 'Job posted successfully', 'job' => new JobResource($job)], 201);
-}
-      public function destroy(Job $job)
-{
-    if ($job->posted_by !== auth()->id() && auth()->user()->role?->name !== 'admin') {
-        return response()->json(['message' => 'Forbidden'], 403);
+    public function store(StoreJobRequest $request)
+    {
+        try {
+            $job = $this->jobService->create($request->validated());
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
+
+        return response()->json(['message' => 'Job posted successfully', 'job' => new JobResource($job)], 201);
     }
 
-    if ($job->applications()->count() > 0) {
-        return response()->json(['message' => 'Cannot delete a job that already has applicants.'], 409);
+    public function destroy(Job $job)
+    {
+        if ($job->posted_by !== auth()->id() && auth()->user()->role?->name !== 'admin') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if ($job->applications()->count() > 0) {
+            return response()->json(['message' => 'Cannot delete a job that already has applicants.'], 409);
+        }
+
+        $this->jobService->delete($job);
+        return response()->json(['message' => 'Job deleted successfully']);
     }
 
-    $this->jobService->delete($job);
-    return response()->json(['message' => 'Job deleted successfully']);
-}
-    public function internalIndex(Request $request)
-{
-    if ($request->user()->role?->name === 'job_seeker') {
-        return response()->json(['message' => 'Forbidden'], 403);
+    // Staff-only management listing — every job regardless of status. Kept at the
+    // same /internal-jobs URL as before to avoid a frontend route change, even though
+    // "internal" no longer means anything now that visibility is gone.
+    public function manageIndex(Request $request)
+    {
+        if ($request->user()->role?->name === 'job_seeker') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $jobs = $this->jobService->listForManagement($request->all());
+        return JobResource::collection($jobs);
     }
 
-    $jobs = $this->jobService->listInternal($request->all());
-    return JobResource::collection($jobs);
-}
     public function update(UpdateJobRequest $request, Job $job)
     {
         $job = $this->jobService->update($job, $request->validated());

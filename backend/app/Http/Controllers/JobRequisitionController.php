@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RejectRequisitionRequest;
 use App\Http\Requests\StoreRequisitionRequest;
+use App\Http\Requests\UpdateRequisitionHrFieldsRequest;
 use App\Http\Resources\JobRequisitionResource;
 use App\Models\JobRequisition;
 use App\Services\RequisitionService;
@@ -16,7 +17,7 @@ class JobRequisitionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = JobRequisition::with(['category', 'requestedBy', 'approvedBy']);
+        $query = JobRequisition::with(['jobTitle.department.mainCategory', 'requestedBy', 'approvedBy', 'skills']);
 
         // Managers see only their own; HR sees all
         if ($user->role?->name === 'manager') {
@@ -32,7 +33,7 @@ class JobRequisitionController extends Controller
 
     public function show(JobRequisition $requisition)
     {
-        return new JobRequisitionResource($requisition->load(['category', 'requestedBy', 'approvedBy']));
+        return new JobRequisitionResource($requisition->load(['jobTitle.department.mainCategory', 'requestedBy', 'approvedBy', 'skills']));
     }
 
     public function store(StoreRequisitionRequest $request)
@@ -49,6 +50,18 @@ class JobRequisitionController extends Controller
 
         try {
             $requisition = $this->requisitionService->update($requisition, $request->validated());
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
+
+        return response()->json(['message' => 'Requisition updated', 'requisition' => new JobRequisitionResource($requisition)]);
+    }
+
+    // HR-only narrow edit: salary range + application window.
+    public function hrUpdate(UpdateRequisitionHrFieldsRequest $request, JobRequisition $requisition)
+    {
+        try {
+            $requisition = $this->requisitionService->updateHrFields($requisition, $request->validated());
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 409);
         }

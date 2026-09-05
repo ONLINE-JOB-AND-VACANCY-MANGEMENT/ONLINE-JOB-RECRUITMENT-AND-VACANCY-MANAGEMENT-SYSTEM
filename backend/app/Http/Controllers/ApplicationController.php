@@ -41,6 +41,52 @@ class ApplicationController extends Controller
         return ApplicationResource::collection($applications);
     }
 
+    // CSV export of every applicant for a job — name, contact info, status, cover
+    // letter, resume filename, and exam/interview scheduling if present.
+    public function exportApplicants(Request $request, Job $job)
+    {
+        if ($request->user()->role?->name !== 'employer') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $applications = $job->applications()->with(['user', 'resume', 'exam', 'interview'])->get();
+
+        $filename = 'applicants-job-' . $job->id . '-' . now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $columns = [
+            'Name', 'Email', 'Phone', 'Status', 'Applied At', 'Cover Letter',
+            'Resume File', 'Exam Scheduled At', 'Interview Scheduled At',
+        ];
+
+        $callback = function () use ($applications, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($applications as $application) {
+                fputcsv($file, [
+                    $application->user?->name,
+                    $application->user?->email,
+                    $application->user?->phone,
+                    $application->status,
+                    optional($application->created_at)->format('Y-m-d H:i'),
+                    $application->cover_letter,
+                    $application->resume?->original_name,
+                    optional($application->exam?->scheduled_at)->format('Y-m-d H:i'),
+                    optional($application->interview?->scheduled_at)->format('Y-m-d H:i'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function myApplications(Request $request)
     {
         $applications = $this->applicationService->listForJobSeeker($request->user()->id);
@@ -65,7 +111,6 @@ class ApplicationController extends Controller
         if ($request->user()->role?->name !== 'employer') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
-
         $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
         $application = $this->applicationService->scheduleExam($application, $data);
         return response()->json(['message' => 'Exam scheduled', 'application' => new ApplicationResource($application)]);

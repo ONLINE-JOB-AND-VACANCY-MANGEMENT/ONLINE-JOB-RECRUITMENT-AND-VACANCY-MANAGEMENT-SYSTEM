@@ -14,13 +14,15 @@ class StoreRequisitionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => 'required|exists:categories,id',
-            'department' => 'required|string|max:255',
-            'job_title' => 'required|string|max:255',
+            'job_title_id' => 'required|exists:job_titles,id',
+            'job_type' => 'required|in:full_time,part_time,contract,internship',
             'target_hire_date' => 'nullable|date|after:today',
             'salary_min' => 'nullable|numeric|min:0',
             'salary_max' => 'nullable|numeric|gte:salary_min',
             'justification' => 'required|string|max:5000',
+            'requirements' => 'nullable|string|max:5000',
+            'skills' => 'nullable|array',
+            'skills.*' => 'exists:skills,id',
         ];
     }
 }

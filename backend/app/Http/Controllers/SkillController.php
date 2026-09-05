@@ -17,7 +17,7 @@ class SkillController extends Controller
 
     public function store(Request $request)
     {
-        if ($request->user()->role?->name !== 'admin') {
+        if ($request->user()->role?->name !== 'employer') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -30,7 +30,7 @@ class SkillController extends Controller
 
     public function destroy(Request $request, Skill $skill)
     {
-        if ($request->user()->role?->name !== 'admin') {
+        if ($request->user()->role?->name !== 'employer') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 

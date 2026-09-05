@@ -9,11 +9,20 @@ class RequisitionService
 {
     public function create(array $data): JobRequisition
     {
-        return JobRequisition::create([
+        $skillIds = $data['skills'] ?? [];
+        unset($data['skills']);
+
+        $requisition = JobRequisition::create([
             ...$data,
             'requested_by' => Auth::id(),
             'status' => 'draft',
         ]);
+
+        if (!empty($skillIds)) {
+            $requisition->skills()->sync($skillIds);
+        }
+
+        return $requisition->load(['jobTitle.department.mainCategory', 'skills']);
     }
 
     public function update(JobRequisition $requisition, array $data): JobRequisition
@@ -22,8 +31,30 @@ class RequisitionService
             throw new \Exception('Only draft requisitions can be edited.');
         }
 
+        $skillIds = $data['skills'] ?? null;
+        unset($data['skills']);
+
         $requisition->update($data);
-        return $requisition;
+
+        if ($skillIds !== null) {
+            $requisition->skills()->sync($skillIds);
+        }
+
+        return $requisition->load(['jobTitle.department.mainCategory', 'skills']);
+    }
+
+    // HR-only: narrow edit of salary range + application window. The manager owns
+    // everything else about the requisition (job title, requirements, skills, job
+    // type, justification) — HR can only adjust the fields directly tied to their role.
+    public function updateHrFields(JobRequisition $requisition, array $data): JobRequisition
+    {
+        if (!in_array($requisition->status, ['approved', 'ready_to_post'])) {
+            throw new \Exception('Salary and dates can only be adjusted on an approved requisition.');
+        }
+
+        $requisition->update($data);
+
+        return $requisition->load(['jobTitle.department.mainCategory', 'skills']);
     }
 
     public function submit(JobRequisition $requisition): JobRequisition
