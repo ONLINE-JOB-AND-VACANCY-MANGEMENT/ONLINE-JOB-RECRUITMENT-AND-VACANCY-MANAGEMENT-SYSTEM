@@ -12,7 +12,7 @@ class BookmarkController extends Controller
     public function index(Request $request)
     {
         $jobs = Job::whereHas('bookmarks', fn ($q) => $q->where('user_id', $request->user()->id))
-            ->with(['company', 'category', 'skills'])
+            ->with(['company', 'jobTitle.department.mainCategory', 'skills'])
             ->paginate(15);
 
         return JobResource::collection($jobs);

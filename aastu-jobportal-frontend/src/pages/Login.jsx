@@ -3,6 +3,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'react-toastify'
 
+const ROLE_HOME = {
+  job_seeker: '/jobs',
+  manager: '/manager/requisitions',
+  employer: '/employer/jobs',
+  admin: '/admin/users',
+}
+
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -18,7 +25,7 @@ export default function Login() {
     try {
       const user = await login(form)
       const from = location.state?.from
-      navigate(from || (user.role === 'job_seeker' ? '/jobs' : '/dashboard'))
+      navigate(from || ROLE_HOME[user.role] || '/jobs')
     } catch (err) {
       const resp = err.response?.data
       setErrors(resp?.errors ?? {})
@@ -32,7 +39,7 @@ export default function Login() {
     <div className="hp-auth-page">
       <form className="hp-auth-card" onSubmit={handleSubmit}>
         <p className="hp-eyebrow">Welcome back</p>
-        <h1 className="hp-h2 mb-4">Log in to Hire Path</h1>
+        <h1 className="hp-h2 mb-4">Log in to AASTU JobPortal</h1>
 
         <label className="form-label hp-label">Email</label>
         <input

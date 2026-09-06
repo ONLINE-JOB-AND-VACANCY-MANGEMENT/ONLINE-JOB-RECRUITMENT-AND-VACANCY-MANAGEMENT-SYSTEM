@@ -1,0 +1,15 @@
+# Use this workspace to collaborate
+workspace:
+  id: caff00ec-c4ac-425c-af1a-e768c66a47dc
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/AASTU Job Portal API: 8b7c1aea-eade-42dc-ac89-8c82daebd857
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/

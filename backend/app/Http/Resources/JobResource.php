@@ -30,7 +30,7 @@ class JobResource extends JsonResource
             'posted_by' => $this->postedBy?->name,
             'applications_count' => $this->whenCounted('applications'),
             'is_bookmarked' => $request->user()?->role?->name === 'job_seeker'
-                ? $this->bookmarks()->where('user_id', $request->user()->id)->exists()
+                ? $this->bookmarks->contains('user_id', $request->user()->id)
                 : false,
             'created_at' => $this->created_at,
         ];

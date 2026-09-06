@@ -10,7 +10,7 @@ class JobService
 {
     public function list(array $filters)
     {
-        $query = Job::query()->with(['jobTitle.department.mainCategory', 'skills'])->withCount('applications');
+        $query = Job::query()->with(['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks'])->withCount('applications');
 
         if (!empty($filters['search'])) {
             $query->where('title', 'like', '%' . $filters['search'] . '%');
@@ -44,7 +44,7 @@ class JobService
     // internal/public split to distinguish "staff view" from "public view" by.
     public function listForManagement(array $filters)
     {
-        $query = Job::query()->with(['jobTitle.department.mainCategory', 'skills'])->withCount('applications');
+        $query = Job::query()->with(['jobTitle.department.mainCategory', 'skills', 'postedBy'])->withCount('applications');
 
         if (!empty($filters['search'])) {
             $query->where('title', 'like', '%' . $filters['search'] . '%');

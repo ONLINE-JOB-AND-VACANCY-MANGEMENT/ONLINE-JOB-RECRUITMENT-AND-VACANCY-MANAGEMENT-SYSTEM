@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../services/api'
-import { toast } from 'react-toastify'
 
 export default function EmployerJobs() {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [busyId, setBusyId] = useState(null)
 
   function load() {
     setLoading(true)
@@ -19,20 +17,6 @@ export default function EmployerJobs() {
   }
 
   useEffect(load, [])
-
-  async function toggleVisibility(job) {
-    const nextVisibility = job.visibility === 'public' ? 'internal' : 'public'
-    setBusyId(job.id)
-    try {
-      await api.put(`/jobs/${job.id}`, { visibility: nextVisibility })
-      toast.success(`Job is now ${nextVisibility}`)
-      load()
-    } catch (err) {
-      toast.error(err.response?.data?.message ?? 'Could not update visibility.')
-    } finally {
-      setBusyId(null)
-    }
-  }
 
   return (
     <div className="container py-5">
@@ -51,24 +35,12 @@ export default function EmployerJobs() {
             <div>
               <h3 className="hp-card-title mb-1">{job.title}</h3>
               <p className="hp-card-meta mb-0">
-                {job.category ?? 'General'} · {job.location ?? 'Flexible'} ·{' '}
-                <span className="hp-tag">{job.visibility}</span>{' '}
+                {job.department ?? 'General'} · {job.location ?? 'Flexible'} ·{' '}
                 <span className="hp-tag">{job.status}</span>
               </p>
             </div>
             <div className="d-flex align-items-center gap-3">
               <span className="hp-muted">{job.applications_count ?? 0} applicant{job.applications_count === 1 ? '' : 's'}</span>
-              <button
-                className="btn hp-btn-outline btn-sm"
-                disabled={busyId === job.id}
-                onClick={() => toggleVisibility(job)}
-              >
-                {busyId === job.id
-                  ? 'Updating…'
-                  : job.visibility === 'public'
-                    ? 'Make internal'
-                    : 'Make public'}
-              </button>
               <Link to={`/employer/jobs/${job.id}/applicants`} className="btn hp-btn-accent btn-sm">
                 View applicants
               </Link>
