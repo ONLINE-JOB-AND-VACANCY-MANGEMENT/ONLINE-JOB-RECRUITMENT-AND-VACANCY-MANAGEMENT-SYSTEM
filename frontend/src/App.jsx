@@ -14,6 +14,7 @@ import ManagerRequisitions from './pages/manager/ManagerRequisitions'
 import RequisitionForm from './pages/manager/RequisitionForm'
 import EmployerRequisitions from './pages/employer/EmployerRequisitions'
 import CreateJobFromRequisition from './pages/employer/CreateJobFromRequisition'
+import DirectJobPostForm from './pages/employer/DirectJobPostForm'
 import AdminUsers from './pages/admin/AdminUsers'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -65,6 +66,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['employer']}>
                 <EmployerJobs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employer/jobs/new"
+            element={
+              <ProtectedRoute roles={['employer']}>
+                <DirectJobPostForm />
               </ProtectedRoute>
             }
           />

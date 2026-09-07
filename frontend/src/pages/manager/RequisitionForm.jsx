@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../services/api'
+import CategoryPicker from '../../components/CategoryPicker'
 import { toast } from 'react-toastify'
 
+const JOB_TYPES = ['full_time', 'part_time', 'contract', 'internship']
+
 const emptyForm = {
-  category_id: '',
-  department: '',
-  job_title: '',
+  job_title_id: '',
+  job_type: 'full_time',
   target_hire_date: '',
   salary_min: '',
   salary_max: '',
   justification: '',
+  requirements: '',
+  skills: [],
 }
 
 export default function RequisitionForm() {
@@ -18,7 +22,7 @@ export default function RequisitionForm() {
   const isEdit = Boolean(id)
   const navigate = useNavigate()
 
-  const [categories, setCategories] = useState([])
+  const [allSkills, setAllSkills] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -27,9 +31,8 @@ export default function RequisitionForm() {
 
   useEffect(() => {
     async function init() {
-      const catRes = await api.get('/categories')
-      const cats = Array.isArray(catRes.data) ? catRes.data : catRes.data.data ?? []
-      setCategories(cats)
+      const skillRes = await api.get('/skills')
+      setAllSkills(Array.isArray(skillRes.data) ? skillRes.data : skillRes.data.data ?? [])
 
       if (isEdit) {
         const reqRes = await api.get(`/requisitions/${id}`)
@@ -40,15 +43,15 @@ export default function RequisitionForm() {
           toast.info('Only draft requisitions can be edited.')
         }
 
-        const matched = cats.find((c) => c.name === req.category)
         setForm({
-          category_id: matched?.id ?? '',
-          department: req.department ?? '',
-          job_title: req.job_title ?? '',
+          job_title_id: req.job_title_id ?? '',
+          job_type: req.job_type ?? 'full_time',
           target_hire_date: req.target_hire_date ? String(req.target_hire_date).substring(0, 10) : '',
           salary_min: req.salary_min ?? '',
           salary_max: req.salary_max ?? '',
           justification: req.justification ?? '',
+          requirements: req.requirements ?? '',
+          skills: (req.skills ?? []).map((s) => allSkills.find((as) => as.name === s)?.id).filter(Boolean),
         })
       }
     }
@@ -61,6 +64,13 @@ export default function RequisitionForm() {
 
   function update(field) {
     return (e) => setForm({ ...form, [field]: e.target.value })
+  }
+
+  function toggleSkill(skillId) {
+    setForm((prev) => ({
+      ...prev,
+      skills: prev.skills.includes(skillId) ? prev.skills.filter((s) => s !== skillId) : [...prev.skills, skillId],
+    }))
   }
 
   async function handleSubmit(e) {
@@ -97,28 +107,19 @@ export default function RequisitionForm() {
       )}
 
       <form onSubmit={handleSubmit} className="hp-auth-card" style={{ maxWidth: 'none' }}>
-        <label className="hp-label form-label">Category</label>
-        <select
-          className="form-select mb-1"
-          required
+        <CategoryPicker
+          value={form.job_title_id}
+          onChange={(jobTitleId) => setForm({ ...form, job_title_id: jobTitleId })}
           disabled={readOnly}
-          value={form.category_id}
-          onChange={update('category_id')}
-        >
-          <option value="">Select a category…</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+        />
+        {errors.job_title_id && <p className="text-danger small">{errors.job_title_id[0]}</p>}
+
+        <label className="hp-label form-label mt-3">Job type</label>
+        <select className="form-select mb-1" disabled={readOnly} value={form.job_type} onChange={update('job_type')}>
+          {JOB_TYPES.map((t) => (
+            <option key={t} value={t}>{t.replace('_', ' ')}</option>
           ))}
         </select>
-        {errors.category_id && <p className="text-danger small">{errors.category_id[0]}</p>}
-
-        <label className="hp-label form-label mt-3">Department</label>
-        <input className="form-control mb-1" required disabled={readOnly} value={form.department} onChange={update('department')} />
-        {errors.department && <p className="text-danger small">{errors.department[0]}</p>}
-
-        <label className="hp-label form-label mt-3">Job title</label>
-        <input className="form-control mb-1" required disabled={readOnly} value={form.job_title} onChange={update('job_title')} />
-        {errors.job_title && <p className="text-danger small">{errors.job_title[0]}</p>}
 
         <label className="hp-label form-label mt-3">Target hire date (optional)</label>
         <input
@@ -142,6 +143,15 @@ export default function RequisitionForm() {
         </div>
         {errors.salary_max && <p className="text-danger small">{errors.salary_max[0]}</p>}
 
+        <label className="hp-label form-label mt-3">Requirements (optional)</label>
+        <textarea
+          className="form-control mb-1"
+          rows={3}
+          disabled={readOnly}
+          value={form.requirements}
+          onChange={update('requirements')}
+        />
+
         <label className="hp-label form-label mt-3">Justification</label>
         <textarea
           className="form-control mb-1"
@@ -153,6 +163,22 @@ export default function RequisitionForm() {
           onChange={update('justification')}
         />
         {errors.justification && <p className="text-danger small">{errors.justification[0]}</p>}
+
+        <label className="hp-label form-label mt-3 d-block">Skills (optional)</label>
+        <div className="hp-card-skills mb-1">
+          {allSkills.map((skill) => (
+            <label key={skill.id} className={`hp-skill-check ${form.skills.includes(skill.id) ? 'hp-skill-check--active' : ''}`}>
+              <input
+                type="checkbox"
+                className="d-none"
+                checked={form.skills.includes(skill.id)}
+                onChange={() => !readOnly && toggleSkill(skill.id)}
+                disabled={readOnly}
+              />
+              {skill.name}
+            </label>
+          ))}
+        </div>
 
         {!readOnly && (
           <button className="btn hp-btn-accent w-100 mt-4" disabled={submitting}>

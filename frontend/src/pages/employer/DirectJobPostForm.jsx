@@ -1,74 +1,39 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import CategoryPicker from '../../components/CategoryPicker'
 import { toast } from 'react-toastify'
 
 const JOB_TYPES = ['full_time', 'part_time', 'contract', 'internship']
 const WORKPLACE_TYPES = ['onsite', 'remote', 'hybrid']
 const EXPERIENCE_LEVELS = ['entry', 'mid', 'senior', 'executive']
 
-export default function CreateJobFromRequisition() {
-  const { id } = useParams() // requisition id
-  const navigate = useNavigate()
+const emptyForm = {
+  job_title_id: '',
+  title: '',
+  description: '',
+  requirements: '',
+  salary_min: '',
+  salary_max: '',
+  location: '',
+  job_type: 'full_time',
+  workplace_type: 'onsite',
+  experience_level: 'entry',
+  start_date: '',
+  end_date: '',
+  skills: [],
+}
 
-  const [requisition, setRequisition] = useState(null)
+export default function DirectJobPostForm() {
+  const navigate = useNavigate()
   const [allSkills, setAllSkills] = useState([])
-  const [suggestedCount, setSuggestedCount] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [form, setForm] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
 
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    requirements: '',
-    salary_min: '',
-    salary_max: '',
-    location: '',
-    job_type: 'full_time',
-    workplace_type: 'onsite',
-    experience_level: 'entry',
-    start_date: '',
-    end_date: '',
-    skills: [],
-  })
-
   useEffect(() => {
-    async function init() {
-      const [reqRes, catRes, skillRes] = await Promise.all([
-        api.get(`/requisitions/${id}`),
-        api.get('/categories'),
-        api.get('/skills'),
-      ])
-
-      const req = reqRes.data.data ?? reqRes.data
-      const cats = Array.isArray(catRes.data) ? catRes.data : catRes.data.data ?? []
-      const skills = Array.isArray(skillRes.data) ? skillRes.data : skillRes.data.data ?? []
-
-      setRequisition(req)
-      setAllSkills(skills)
-      setForm((prev) => ({
-        ...prev,
-        title: req.job_title ?? '',
-        salary_min: req.salary_min ?? '',
-        salary_max: req.salary_max ?? '',
-      }))
-
-      const matchedCategory = cats.find((c) => c.name === req.category)
-      if (matchedCategory) {
-        const suggestedRes = await api.get(`/categories/${matchedCategory.id}/skills`)
-        const suggestedList = Array.isArray(suggestedRes.data) ? suggestedRes.data : suggestedRes.data.data ?? []
-        const ids = suggestedList.map((s) => s.id)
-        setSuggestedCount(ids.length)
-        setForm((prev) => ({ ...prev, skills: ids }))
-      }
-    }
-
-    init()
-      .catch(() => toast.error('Could not load requisition details.'))
-      .finally(() => setLoading(false))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+    api.get('/skills').then(({ data }) => setAllSkills(Array.isArray(data) ? data : data.data ?? []))
+  }, [])
 
   function update(field) {
     return (e) => setForm({ ...form, [field]: e.target.value })
@@ -77,9 +42,7 @@ export default function CreateJobFromRequisition() {
   function toggleSkill(skillId) {
     setForm((prev) => ({
       ...prev,
-      skills: prev.skills.includes(skillId)
-        ? prev.skills.filter((s) => s !== skillId)
-        : [...prev.skills, skillId],
+      skills: prev.skills.includes(skillId) ? prev.skills.filter((s) => s !== skillId) : [...prev.skills, skillId],
     }))
   }
 
@@ -88,28 +51,28 @@ export default function CreateJobFromRequisition() {
     setSubmitting(true)
     setErrors({})
     try {
-      await api.post('/jobs', { ...form, requisition_id: id })
+      await api.post('/jobs', form)
       toast.success('Job posted successfully')
-      navigate('/employer/requisitions')
+      navigate('/employer/jobs')
     } catch (err) {
       const resp = err.response?.data
       setErrors(resp?.errors ?? {})
-      toast.error(resp?.message ?? 'Could not create job posting.')
+      toast.error(resp?.message ?? 'Could not post job.')
     } finally {
       setSubmitting(false)
     }
   }
 
-  if (loading) return <div className="container py-5"><p className="hp-muted">Loading…</p></div>
-  if (!requisition) return <div className="container py-5"><p>Requisition not found.</p></div>
-
   return (
     <div className="container py-5" style={{ maxWidth: 720 }}>
-      <p className="hp-eyebrow">From requisition · {requisition.department}</p>
-      <h1 className="hp-h2 mb-4">Post: {requisition.job_title}</h1>
+      <p className="hp-eyebrow">Post directly</p>
+      <h1 className="hp-h1 mb-4">Post a new job.</h1>
 
       <form onSubmit={handleSubmit} className="hp-auth-card" style={{ maxWidth: 'none' }}>
-        <label className="hp-label form-label">Title</label>
+        <CategoryPicker value={form.job_title_id} onChange={(id) => setForm({ ...form, job_title_id: id })} />
+        {errors.job_title_id && <p className="text-danger small">{errors.job_title_id[0]}</p>}
+
+        <label className="hp-label form-label mt-3">Title</label>
         <input className="form-control mb-1" required value={form.title} onChange={update('title')} />
         {errors.title && <p className="text-danger small">{errors.title[0]}</p>}
 
@@ -139,25 +102,19 @@ export default function CreateJobFromRequisition() {
           <div className="col-md-4">
             <label className="hp-label form-label">Job type</label>
             <select className="form-select" value={form.job_type} onChange={update('job_type')}>
-              {JOB_TYPES.map((t) => (
-                <option key={t} value={t}>{t.replace('_', ' ')}</option>
-              ))}
+              {JOB_TYPES.map((t) => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
             </select>
           </div>
           <div className="col-md-4">
             <label className="hp-label form-label">Workplace</label>
             <select className="form-select" value={form.workplace_type} onChange={update('workplace_type')}>
-              {WORKPLACE_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
+              {WORKPLACE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div className="col-md-4">
             <label className="hp-label form-label">Experience</label>
             <select className="form-select" value={form.experience_level} onChange={update('experience_level')}>
-              {EXPERIENCE_LEVELS.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
+              {EXPERIENCE_LEVELS.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
         </div>
@@ -177,10 +134,7 @@ export default function CreateJobFromRequisition() {
         <label className="hp-label form-label mt-3 d-block">Skills</label>
         <div className="hp-card-skills mb-1">
           {allSkills.map((skill) => (
-            <label
-              key={skill.id}
-              className={`hp-skill-check ${form.skills.includes(skill.id) ? 'hp-skill-check--active' : ''}`}
-            >
+            <label key={skill.id} className={`hp-skill-check ${form.skills.includes(skill.id) ? 'hp-skill-check--active' : ''}`}>
               <input
                 type="checkbox"
                 className="d-none"
@@ -191,9 +145,6 @@ export default function CreateJobFromRequisition() {
             </label>
           ))}
         </div>
-        {suggestedCount > 0 && (
-          <p className="hp-muted small mt-1">Pre-selected based on this category's linked skills.</p>
-        )}
 
         <button className="btn hp-btn-accent w-100 mt-4" disabled={submitting}>
           {submitting ? 'Posting…' : 'Post job'}

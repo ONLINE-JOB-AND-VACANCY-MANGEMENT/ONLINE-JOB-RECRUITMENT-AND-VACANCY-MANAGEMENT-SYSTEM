@@ -51,7 +51,7 @@ export default function MyBookmarks() {
           <div className="col-md-6 col-lg-4" key={job.id}>
             <div className="hp-card d-flex flex-column h-100">
               <Link to={`/jobs/${job.id}`} className="hp-card-link mb-3">
-                <p className="hp-card-category">{job.category ?? 'General'}</p>
+                <p className="hp-card-category">{job.department ?? 'General'}</p>
                 <h3 className="hp-card-title">{job.title}</h3>
                 <p className="hp-card-meta">
                   {job.location ?? 'Location flexible'} · {job.job_type?.replace('_', ' ')}

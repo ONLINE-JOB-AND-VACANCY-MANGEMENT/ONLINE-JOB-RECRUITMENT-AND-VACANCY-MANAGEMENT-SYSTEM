@@ -63,7 +63,7 @@ export default function ManagerRequisitions() {
             <div className="d-flex flex-wrap justify-content-between gap-3 mb-3">
               <div>
                 <h3 className="hp-card-title mb-1">{req.job_title}</h3>
-                <p className="hp-card-meta mb-0">{req.department} · {req.category}</p>
+                <p className="hp-card-meta mb-0">{req.main_category} · {req.department}</p>
               </div>
               {req.status === 'draft' && (
                 <div className="d-flex gap-2">

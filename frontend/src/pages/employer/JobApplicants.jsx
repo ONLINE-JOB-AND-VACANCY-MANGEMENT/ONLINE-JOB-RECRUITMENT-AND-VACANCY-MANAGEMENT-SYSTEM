@@ -67,6 +67,26 @@ export default function JobApplicants() {
   const [error, setError] = useState(null)
   const [openForm, setOpenForm] = useState({}) // { [applicationId]: 'exam' | 'interview' | null }
   const [busyId, setBusyId] = useState(null)
+  const [exporting, setExporting] = useState(false)
+
+  async function handleExportCsv() {
+    setExporting(true)
+    try {
+      const res = await api.get(`/jobs/${id}/applicants/export`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `applicants-job-${id}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      toast.error('Could not export applicants.')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   function load() {
     setLoading(true)
@@ -109,8 +129,17 @@ export default function JobApplicants() {
   return (
     <div className="container py-5">
       <Link to="/employer/jobs" className="hp-nav-link">← All jobs</Link>
-      <p className="hp-eyebrow mt-3">Applicants</p>
-      <h1 className="hp-h1 mb-4">Review candidates.</h1>
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3 mb-4">
+        <div>
+          <p className="hp-eyebrow mb-1">Applicants</p>
+          <h1 className="hp-h1 mb-0">Review candidates.</h1>
+        </div>
+        {applications.length > 0 && (
+          <button className="btn hp-btn-outline btn-sm" onClick={handleExportCsv} disabled={exporting}>
+            {exporting ? 'Exporting…' : 'Export CSV'}
+          </button>
+        )}
+      </div>
 
       {loading && <p className="hp-muted">Loading applicants…</p>}
       {error && <p className="text-danger">{error}</p>}

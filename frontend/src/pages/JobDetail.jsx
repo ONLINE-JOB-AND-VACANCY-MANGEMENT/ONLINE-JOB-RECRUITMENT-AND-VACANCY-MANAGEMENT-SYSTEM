@@ -57,7 +57,7 @@ export default function JobDetail() {
 
   return (
     <div className="container py-5">
-      <p className="hp-eyebrow">{job.category ?? 'General'}</p>
+      <p className="hp-eyebrow">{job.department ?? 'General'}</p>
       <h1 className="hp-h1">{job.title}</h1>
       <p className="hp-card-meta mb-4">
         {job.location ?? 'Flexible'} · {job.job_type?.replace('_', ' ')} · {job.experience_level}

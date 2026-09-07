@@ -20,8 +20,13 @@ export default function EmployerJobs() {
 
   return (
     <div className="container py-5">
-      <p className="hp-eyebrow">HR pipeline</p>
-      <h1 className="hp-h1 mb-4">Manage postings.</h1>
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+          <p className="hp-eyebrow mb-1">HR pipeline</p>
+          <h1 className="hp-h1 mb-0">Manage postings.</h1>
+        </div>
+        <Link to="/employer/jobs/new" className="btn hp-btn-accent">Post a job</Link>
+      </div>
 
       {loading && <p className="hp-muted">Loading jobs…</p>}
       {error && <p className="text-danger">{error}</p>}

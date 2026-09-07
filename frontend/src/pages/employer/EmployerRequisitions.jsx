@@ -43,12 +43,58 @@ function RejectForm({ onSubmit, onCancel, submitting }) {
   )
 }
 
+// HR's narrow edit: only the fields directly tied to their role — salary range and
+// the application window. Everything else on the requisition belongs to the manager.
+function HrFieldsForm({ requisition, onSubmit, onCancel, submitting }) {
+  const [salaryMin, setSalaryMin] = useState(requisition.salary_min ?? '')
+  const [salaryMax, setSalaryMax] = useState(requisition.salary_max ?? '')
+  const [startDate, setStartDate] = useState(requisition.start_date ?? '')
+  const [endDate, setEndDate] = useState(requisition.end_date ?? '')
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    onSubmit({ salary_min: salaryMin, salary_max: salaryMax, start_date: startDate, end_date: endDate })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="hp-schedule-form mt-3">
+      <div className="row g-2">
+        <div className="col-6 col-md-3">
+          <label className="hp-label form-label">Salary min</label>
+          <input type="number" className="form-control" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} />
+        </div>
+        <div className="col-6 col-md-3">
+          <label className="hp-label form-label">Salary max</label>
+          <input type="number" className="form-control" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} />
+        </div>
+        <div className="col-6 col-md-3">
+          <label className="hp-label form-label">Start date</label>
+          <input type="date" className="form-control" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </div>
+        <div className="col-6 col-md-3">
+          <label className="hp-label form-label">End date</label>
+          <input type="date" className="form-control" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </div>
+      </div>
+      <div className="d-flex gap-2 mt-3">
+        <button type="submit" className="btn hp-btn-accent btn-sm" disabled={submitting}>
+          {submitting ? 'Saving…' : 'Save'}
+        </button>
+        <button type="button" className="btn hp-btn-outline btn-sm" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
+
 export default function EmployerRequisitions() {
   const [requisitions, setRequisitions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [openReject, setOpenReject] = useState(null)
+  const [openHrFields, setOpenHrFields] = useState(null)
 
   function load() {
     setLoading(true)
@@ -101,6 +147,20 @@ export default function EmployerRequisitions() {
     }
   }
 
+  async function handleHrFieldsSubmit(id, payload) {
+    setBusyId(id)
+    try {
+      await api.patch(`/requisitions/${id}/hr-fields`, payload)
+      toast.success('Requisition updated')
+      setOpenHrFields(null)
+      load()
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Could not update requisition.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   return (
     <div className="container py-5">
       <p className="hp-eyebrow">HR approval queue</p>
@@ -113,23 +173,35 @@ export default function EmployerRequisitions() {
       <div className="d-flex flex-column gap-3">
         {requisitions.map((req) => {
           const isBusy = busyId === req.id
+          const canEditHrFields = req.status === 'approved' || req.status === 'ready_to_post'
           return (
             <div className="hp-card" key={req.id}>
               <div className="d-flex flex-wrap justify-content-between gap-3 mb-3">
                 <div>
                   <h3 className="hp-card-title mb-1">{req.job_title}</h3>
                   <p className="hp-card-meta mb-0">
-                    {req.department} · {req.category} · Requested by {req.requested_by?.name}
+                    {req.main_category} · {req.department} · Requested by {req.requested_by?.name}
                   </p>
                   {(req.salary_min || req.salary_max) && (
                     <p className="hp-salary mb-0 mt-1">
                       {req.salary_min ?? '—'} – {req.salary_max ?? '—'}
                     </p>
                   )}
+                  {(req.start_date || req.end_date) && (
+                    <p className="hp-card-meta mb-0">
+                      Application window: {req.start_date ?? 'not set'} to {req.end_date ?? 'not set'}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <p className="hp-body-text mb-3">{req.justification}</p>
+              {req.requirements && <p className="hp-body-text mb-3"><strong>Requirements:</strong> {req.requirements}</p>}
+              {req.skills?.length > 0 && (
+                <div className="hp-card-skills mb-3">
+                  {req.skills.map((s) => <span className="hp-tag" key={s}>{s}</span>)}
+                </div>
+              )}
 
               <StatusPipeline stages={REQ_STAGES} current={req.status} rejectedKey="rejected" rejectedLabel="Rejected" />
 
@@ -152,6 +224,15 @@ export default function EmployerRequisitions() {
                     </button>
                   </>
                 )}
+                {canEditHrFields && (
+                  <button
+                    className="btn hp-btn-outline btn-sm"
+                    disabled={isBusy}
+                    onClick={() => setOpenHrFields(openHrFields === req.id ? null : req.id)}
+                  >
+                    Edit salary &amp; dates
+                  </button>
+                )}
                 {req.status === 'approved' && (
                   <button className="btn hp-btn-accent btn-sm" disabled={isBusy} onClick={() => handleReadyToPost(req.id)}>
                     Mark ready to post
@@ -170,6 +251,15 @@ export default function EmployerRequisitions() {
                   submitting={isBusy}
                   onCancel={() => setOpenReject(null)}
                   onSubmit={(reason) => handleReject(req.id, reason)}
+                />
+              )}
+
+              {openHrFields === req.id && (
+                <HrFieldsForm
+                  requisition={req}
+                  submitting={isBusy}
+                  onCancel={() => setOpenHrFields(null)}
+                  onSubmit={(payload) => handleHrFieldsSubmit(req.id, payload)}
                 />
               )}
             </div>
