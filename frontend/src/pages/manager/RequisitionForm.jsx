@@ -33,6 +33,9 @@ export default function RequisitionForm() {
   // never has to guess the chain by brute-force searching (AASTU-JobPortal-HANDOFF.md §6.3).
   const [initialMainCategoryId, setInitialMainCategoryId] = useState(null)
   const [initialDepartmentId, setInitialDepartmentId] = useState(null)
+  const [creatingSkill, setCreatingSkill] = useState(false)
+  const [newSkillName, setNewSkillName] = useState('')
+  const [submittingSkill, setSubmittingSkill] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -79,6 +82,23 @@ export default function RequisitionForm() {
       ...prev,
       skills: prev.skills.includes(skillId) ? prev.skills.filter((s) => s !== skillId) : [...prev.skills, skillId],
     }))
+  }
+
+  async function handleCreateSkill() {
+    if (!newSkillName.trim()) return
+    setSubmittingSkill(true)
+    try {
+      const { data } = await api.post('/skills', { name: newSkillName.trim() })
+      setAllSkills((previous) => [...previous, data.skill].sort((a, b) => a.name.localeCompare(b.name)))
+      setForm((previous) => ({ ...previous, skills: [...previous.skills, data.skill.id] }))
+      setNewSkillName('')
+      setCreatingSkill(false)
+      toast.success('Skill created and selected')
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Could not create skill.')
+    } finally {
+      setSubmittingSkill(false)
+    }
   }
 
   async function handleSubmit(e) {
@@ -189,6 +209,19 @@ export default function RequisitionForm() {
             </label>
           ))}
         </div>
+        {!readOnly && (!creatingSkill ? (
+          <button type="button" className="btn hp-btn-outline btn-sm mt-2" onClick={() => setCreatingSkill(true)}>
+            + Create a new skill
+          </button>
+        ) : (
+          <div className="d-flex gap-2 mt-2">
+            <input className="form-control" placeholder="Skill name" value={newSkillName} onChange={(e) => setNewSkillName(e.target.value)} />
+            <button type="button" className="btn hp-btn-accent btn-sm" onClick={handleCreateSkill} disabled={submittingSkill}>
+              {submittingSkill ? 'Adding…' : 'Add'}
+            </button>
+            <button type="button" className="btn hp-btn-outline btn-sm" onClick={() => setCreatingSkill(false)}>Cancel</button>
+          </div>
+        ))}
 
         {!readOnly && (
           <button className="btn hp-btn-accent w-100 mt-4" disabled={submitting}>

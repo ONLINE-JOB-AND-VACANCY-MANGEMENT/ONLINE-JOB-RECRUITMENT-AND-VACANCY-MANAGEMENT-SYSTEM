@@ -175,6 +175,10 @@ a { color: inherit; }
     background: rgba(0,0,0,0.35);
     z-index: 25;
   }
+  .hp-main-content .container { padding-left: 1rem; padding-right: 1rem; }
+  .table-responsive { border: 1px solid var(--hp-line); border-radius: 8px; }
+  .table-responsive table { min-width: 720px; margin-bottom: 0; }
+  .hp-auth-card { padding: 1.25rem; }
 }
 
 .hp-btn-accent {

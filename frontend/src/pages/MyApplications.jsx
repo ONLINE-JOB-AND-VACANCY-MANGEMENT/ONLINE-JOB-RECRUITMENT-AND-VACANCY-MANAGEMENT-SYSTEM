@@ -60,6 +60,7 @@ export default function MyApplications() {
               <p className="hp-muted mt-1 mb-0">
                 Interview: {new Date(app.interview.scheduled_at).toLocaleString()} · {app.interview.mode}
                 {app.interview.location ? ` · ${app.interview.location}` : ''}
+                {app.interview.meeting_link && <> · <a href={app.interview.meeting_link} target="_blank" rel="noreferrer">Join meeting</a></>}
               </p>
             )}
           </div>

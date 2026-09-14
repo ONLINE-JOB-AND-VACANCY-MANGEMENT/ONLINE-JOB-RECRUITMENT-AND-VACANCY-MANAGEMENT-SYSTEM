@@ -176,7 +176,11 @@ class ApplicationController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
+        $data = $request->validate([
+            'scheduled_at' => 'required|date',
+            'location' => 'nullable|string',
+            'mode' => 'nullable|in:onsite,online',
+        ]);
 
         try {
             $application = $this->applicationService->scheduleExam($application, $data);
@@ -193,7 +197,12 @@ class ApplicationController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
+        $data = $request->validate([
+            'scheduled_at' => 'required|date',
+            'location' => 'nullable|string',
+            'mode' => 'nullable|in:onsite,online',
+            'meeting_link' => 'required_if:mode,online|nullable|url|max:2048',
+        ]);
 
         try {
             $application = $this->applicationService->scheduleInterview($application, $data);

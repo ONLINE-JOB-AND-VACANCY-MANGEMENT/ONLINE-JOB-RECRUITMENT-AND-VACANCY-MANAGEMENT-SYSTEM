@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import logo from '../assets/aastu-logo.jpg'
+import logo from '../assets/aastu logo.jpg'
 
 function NavItem({ to, children }) {
   return (
@@ -70,6 +70,7 @@ export default function Sidebar() {
         {user && (
           <>
             <p className="hp-sidebar-section-label">Account</p>
+            <NavItem to="/profile">My profile</NavItem>
             <NavItem to="/notifications">Notifications</NavItem>
           </>
         )}

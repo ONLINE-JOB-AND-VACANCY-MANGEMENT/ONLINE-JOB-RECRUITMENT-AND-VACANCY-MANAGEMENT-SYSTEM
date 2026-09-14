@@ -41,6 +41,7 @@ class ApplicationResource extends JsonResource
     'scheduled_at' => $this->interview->scheduled_at,
     'location' => $this->interview->location,
     'mode' => $this->interview->mode,
+    'meeting_link' => $this->interview->meeting_link,
     'status' => $this->interview->status,
 ] : null,
             'applied_at' => $this->created_at,

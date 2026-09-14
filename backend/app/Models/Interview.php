@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Interview extends Model
 {
-    protected $fillable = ['application_id', 'scheduled_at', 'location', 'mode', 'status', 'notes'];
+    protected $fillable = ['application_id', 'scheduled_at', 'location', 'mode', 'meeting_link', 'status', 'notes'];
 
     protected function casts(): array
     {

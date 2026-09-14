@@ -10,11 +10,23 @@ class JobService
 {
     public function list(array $filters)
     {
+        $this->closeExpiredJobs();
         $query = Job::query()->with(['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks'])->withCount('applications');
 
         if (!empty($filters['search'])) {
-            $query->where('title', 'like', '%' . $filters['search'] . '%');
+            $search = $filters['search'];
+            $query->where(function ($builder) use ($search) {
+                $builder
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhereHas('jobTitle', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('jobTitle.department', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('company', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('skills', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('experience_level', 'like', "%{$search}%");
+            });
         }
+        $this->applyDetailedFilters($query, $filters);
         if (!empty($filters['department_id'])) {
             $query->whereHas('jobTitle', fn ($q) => $q->where('department_id', $filters['department_id']));
         }
@@ -44,11 +56,23 @@ class JobService
     // internal/public split to distinguish "staff view" from "public view" by.
     public function listForManagement(array $filters)
     {
+        $this->closeExpiredJobs();
         $query = Job::query()->with(['jobTitle.department.mainCategory', 'skills', 'postedBy'])->withCount('applications');
 
         if (!empty($filters['search'])) {
-            $query->where('title', 'like', '%' . $filters['search'] . '%');
+            $search = $filters['search'];
+            $query->where(function ($builder) use ($search) {
+                $builder
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhereHas('jobTitle', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('jobTitle.department', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('company', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('skills', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('experience_level', 'like', "%{$search}%");
+            });
         }
+        $this->applyDetailedFilters($query, $filters);
         if (!empty($filters['department_id'])) {
             $query->whereHas('jobTitle', fn ($q) => $q->where('department_id', $filters['department_id']));
         }
@@ -117,5 +141,34 @@ class JobService
     public function delete(Job $job): void
     {
         $job->delete();
+    }
+
+    public function closeExpiredJobs(): int
+    {
+        return Job::where('status', 'open')
+            ->whereDate('end_date', '<', today())
+            ->update(['status' => 'closed']);
+    }
+
+    private function applyDetailedFilters($query, array $filters): void
+    {
+        if (!empty($filters['title'])) {
+            $query->where('title', 'like', '%' . $filters['title'] . '%');
+        }
+        if (!empty($filters['department'])) {
+            $query->whereHas('jobTitle.department', fn ($q) => $q->where('name', 'like', '%' . $filters['department'] . '%'));
+        }
+        if (!empty($filters['company'])) {
+            $query->whereHas('company', fn ($q) => $q->where('name', 'like', '%' . $filters['company'] . '%'));
+        }
+        if (!empty($filters['location'])) {
+            $query->where('location', 'like', '%' . $filters['location'] . '%');
+        }
+        if (!empty($filters['skill'])) {
+            $query->whereHas('skills', fn ($q) => $q->where('name', 'like', '%' . $filters['skill'] . '%'));
+        }
+        if (!empty($filters['experience'])) {
+            $query->where('experience_level', $filters['experience']);
+        }
     }
 }

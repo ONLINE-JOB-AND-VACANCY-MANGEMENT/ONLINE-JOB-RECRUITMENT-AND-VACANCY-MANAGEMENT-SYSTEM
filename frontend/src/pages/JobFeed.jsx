@@ -6,15 +6,17 @@ export default function JobFeed() {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [search, setSearch] = useState('')
+  const emptyFilters = { search: '', title: '', department: '', company: '', location: '', skill: '', experience: '' }
+  const [filters, setFilters] = useState(emptyFilters)
+  const [appliedFilters, setAppliedFilters] = useState(emptyFilters)
   const [page, setPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
   const [total, setTotal] = useState(0)
 
-  function load(targetPage = 1, targetSearch = search) {
+  function load(targetPage = 1, targetFilters = appliedFilters) {
     setLoading(true)
     api
-      .get('/jobs', { params: { page: targetPage, search: targetSearch || undefined } })
+      .get('/jobs', { params: { page: targetPage, ...targetFilters } })
       .then(({ data }) => {
         const list = data.data ?? data
         setJobs(list)
@@ -30,7 +32,18 @@ export default function JobFeed() {
 
   function handleSearchSubmit(e) {
     e.preventDefault()
-    load(1, search)
+    setAppliedFilters(filters)
+    load(1, filters)
+  }
+
+  function updateFilter(field) {
+    return (e) => setFilters((previous) => ({ ...previous, [field]: e.target.value }))
+  }
+
+  function resetFilters() {
+    setFilters(emptyFilters)
+    setAppliedFilters(emptyFilters)
+    load(1, emptyFilters)
   }
 
   return (
@@ -40,14 +53,39 @@ export default function JobFeed() {
         <h1 className="hp-h1">Find where you fit next.</h1>
       </div>
 
-      <form onSubmit={handleSearchSubmit} className="d-flex gap-2 mb-4">
+      <form onSubmit={handleSearchSubmit} className="hp-card mb-4">
         <input
-          className="form-control hp-search"
-          placeholder="Search by title…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          className="form-control mb-2"
+          placeholder="Search all fields…"
+          value={filters.search}
+          onChange={updateFilter('search')}
         />
-        <button className="btn hp-btn-accent" type="submit">Search</button>
+        <div className="row g-2">
+          {[
+            ['title', 'Title'],
+            ['department', 'Department'],
+            ['company', 'Company'],
+            ['location', 'Location'],
+            ['skill', 'Skill'],
+          ].map(([field, label]) => (
+            <div className="col-sm-6 col-lg" key={field}>
+              <input className="form-control" placeholder={label} value={filters[field]} onChange={updateFilter(field)} />
+            </div>
+          ))}
+          <div className="col-sm-6 col-lg">
+            <select className="form-select" value={filters.experience} onChange={updateFilter('experience')}>
+              <option value="">All experience</option>
+              <option value="entry">Entry</option>
+              <option value="mid">Mid</option>
+              <option value="senior">Senior</option>
+              <option value="executive">Executive</option>
+            </select>
+          </div>
+        </div>
+        <div className="d-flex gap-2 mt-3">
+          <button className="btn hp-btn-accent" type="submit">Search</button>
+          <button className="btn hp-btn-outline" type="button" onClick={resetFilters}>Reset</button>
+        </div>
       </form>
 
       {loading && <p className="hp-muted">Loading open roles…</p>}
@@ -67,6 +105,7 @@ export default function JobFeed() {
                   <th>Title</th>
                   <th>Department</th>
                   <th>Location</th>
+                  <th>Company</th>
                   <th>Type</th>
                   <th>Skills</th>
                   <th></th>
@@ -78,6 +117,7 @@ export default function JobFeed() {
                     <td className="fw-semibold">{job.title}</td>
                     <td>{job.department ?? 'General'}</td>
                     <td>{job.location ?? 'Flexible'}</td>
+                    <td>{job.company ?? 'AASTU'}</td>
                     <td>{job.job_type?.replace('_', ' ')}</td>
                     <td>
                       <div className="hp-card-skills">

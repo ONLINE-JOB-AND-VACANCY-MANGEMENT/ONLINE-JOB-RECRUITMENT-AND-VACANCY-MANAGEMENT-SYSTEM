@@ -14,7 +14,7 @@ class User extends Authenticatable
     protected $fillable = [
         'role_id', 'name', 'first_name', 'middle_name', 'last_name', 'email', 'password',
         'phone', 'address', 'profile_photo', 'is_active',
-        'cgpa', 'graduation_university', 'worked_company', 'department_id',
+        'cgpa', 'graduation_university', 'worked_company', 'department_id', 'must_change_password',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -41,6 +41,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
             'password' => 'hashed',
             'cgpa' => 'decimal:2',
         ];

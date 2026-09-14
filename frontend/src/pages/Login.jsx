@@ -25,7 +25,7 @@ export default function Login() {
     try {
       const user = await login(form)
       const from = location.state?.from
-      navigate(from || ROLE_HOME[user.role] || '/jobs')
+      navigate(user.must_change_password ? '/change-password' : from || ROLE_HOME[user.role] || '/jobs')
     } catch (err) {
       const resp = err.response?.data
       setErrors(resp?.errors ?? {})

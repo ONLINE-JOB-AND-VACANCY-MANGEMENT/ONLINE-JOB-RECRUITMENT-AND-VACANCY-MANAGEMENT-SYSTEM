@@ -2,7 +2,32 @@ import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import { toast } from 'react-toastify'
 
-const emptyForm = { name: '', email: '', password: '', password_confirmation: '', role: 'employer', phone: '', department_id: '' }
+const emptyForm = {
+  name: '',
+  father_name: '',
+  email: '',
+  password: '',
+  password_confirmation: '',
+  role: 'employer',
+  phone: '',
+  department_id: '',
+}
+
+function formatAastuEmail(name, fatherName) {
+  const normalize = (value) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '.')
+      .replace(/[^a-z0-9.]/g, '')
+      .replace(/\.{2,}/g, '.')
+      .replace(/^\.+|\.+$/g, '')
+
+  const namePart = normalize(name)
+  const fatherNamePart = normalize(fatherName)
+
+  return namePart && fatherNamePart ? `${namePart}.${fatherNamePart}@aastu.edu.net` : ''
+}
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
@@ -17,22 +42,31 @@ export default function AdminUsers() {
   const [page, setPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [stats, setStats] = useState({})
+  const [filters, setFilters] = useState({ search: '', role: '', status: '' })
+  const [appliedFilters, setAppliedFilters] = useState({ search: '', role: '', status: '' })
 
-  function load(targetPage = page) {
+  function load(targetPage = page, activeFilters = appliedFilters) {
     setLoading(true)
+    const params = new URLSearchParams({ page: String(targetPage) })
+    Object.entries(activeFilters).forEach(([key, value]) => {
+      if (value) params.set(key, value)
+    })
+
     api
-      .get(`/users?page=${targetPage}`)
+      .get(`/users?${params.toString()}`)
       .then(({ data }) => {
         setUsers(data.data ?? data)
         setLastPage(data.meta?.last_page ?? 1)
         setTotal(data.meta?.total ?? (data.data ?? data).length)
+        setStats(data.stats ?? {})
         setPage(targetPage)
       })
       .catch(() => setError('Could not load users.'))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => load(1), []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => load(1, {}), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Departments are only needed for the manager department picker, but cheap
@@ -54,7 +88,53 @@ export default function AdminUsers() {
   }
 
   function update(field) {
-    return (e) => setForm({ ...form, [field]: e.target.value })
+    return (e) => {
+      const value = e.target.value
+      setForm((previous) => {
+        const next = { ...previous, [field]: value }
+
+        if (field === 'name' || field === 'father_name') {
+          next.email = formatAastuEmail(next.name, next.father_name)
+        }
+
+        return next
+      })
+    }
+  }
+
+  function updateFilter(field) {
+    return (e) => setFilters((previous) => ({ ...previous, [field]: e.target.value }))
+  }
+
+  function applyFilters(e) {
+    e.preventDefault()
+    setAppliedFilters(filters)
+    load(1, filters)
+  }
+
+  function resetFilters() {
+    const emptyFilters = { search: '', role: '', status: '' }
+    setFilters(emptyFilters)
+    setAppliedFilters(emptyFilters)
+    load(1, emptyFilters)
+  }
+
+  async function exportUsers() {
+    try {
+      const params = new URLSearchParams()
+      Object.entries(appliedFilters).forEach(([key, value]) => {
+        if (value) params.set(key, value)
+      })
+      const response = await api.get(`/users/export?${params.toString()}`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'users.csv'
+      link.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Could not export users.')
+    }
   }
 
   async function handleCreateStaff(e) {
@@ -62,8 +142,8 @@ export default function AdminUsers() {
     setSubmitting(true)
     setErrors({})
     try {
-      await api.post('/staff', form)
-      toast.success('Staff account created')
+      const { data } = await api.post('/staff', form)
+      toast.success(`Staff account created: ${data.user.email}`)
       setForm(emptyForm)
       setShowForm(false)
       load(1)
@@ -88,13 +168,42 @@ export default function AdminUsers() {
         </button>
       </div>
 
+      <div className="row g-3 mb-4">
+        {[
+          ['Total users', stats.total],
+          ['Active users', stats.active],
+          ['Job seekers', stats.job_seekers],
+          ['Employers', stats.employers],
+          ['Managers', stats.managers],
+        ].map(([label, value]) => (
+          <div className="col-sm-6 col-lg" key={label}>
+            <div className="hp-card h-100">
+              <p className="hp-card-meta mb-2">{label}</p>
+              <p className="hp-h2 mb-0">{value ?? '—'}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {showForm && (
         <form onSubmit={handleCreateStaff} className="hp-auth-card mb-4" style={{ maxWidth: 480 }}>
-          <label className="hp-label form-label">Full name</label>
+          <label className="hp-label form-label">Person&apos;s name</label>
           <input className="form-control mb-3" required value={form.name} onChange={update('name')} />
 
+          <label className="hp-label form-label">Father&apos;s name</label>
+          <input className="form-control mb-3" required value={form.father_name} onChange={update('father_name')} />
+          {errors.father_name && <p className="text-danger small">{errors.father_name[0]}</p>}
+
           <label className="hp-label form-label">Email</label>
-          <input type="email" className="form-control mb-3" required value={form.email} onChange={update('email')} />
+          <input
+            type="email"
+            className="form-control mb-3"
+            required
+            readOnly
+            value={form.email}
+            placeholder="Generated from the name fields"
+          />
+          <p className="hp-muted small mb-3">AASTU staff email is generated automatically.</p>
           {errors.email && <p className="text-danger small">{errors.email[0]}</p>}
 
           <label className="hp-label form-label">Role</label>
@@ -116,8 +225,17 @@ export default function AdminUsers() {
             </>
           )}
 
-          <label className="hp-label form-label">Phone (optional)</label>
-          <input className="form-control mb-3" value={form.phone} onChange={update('phone')} />
+          <label className="hp-label form-label">Phone</label>
+          <input
+            type="tel"
+            className="form-control mb-3"
+            required
+            pattern="(?:09\d{8}|\+2519\d{8})"
+            title="Use 09XXXXXXXX or +2519XXXXXXXX"
+            value={form.phone}
+            onChange={update('phone')}
+          />
+          {errors.phone && <p className="text-danger small">{errors.phone[0]}</p>}
 
           <label className="hp-label form-label">Password</label>
           <input type="password" className="form-control mb-3" required value={form.password} onChange={update('password')} />
@@ -138,9 +256,51 @@ export default function AdminUsers() {
         </form>
       )}
 
+      <form onSubmit={applyFilters} className="hp-card mb-4">
+        <div className="row g-2 align-items-end">
+          <div className="col-lg-5">
+            <label className="hp-label form-label">Search users</label>
+            <input
+              className="form-control"
+              placeholder="Name, email, or phone"
+              value={filters.search}
+              onChange={updateFilter('search')}
+            />
+          </div>
+          <div className="col-sm-6 col-lg-2">
+            <label className="hp-label form-label">Role</label>
+            <select className="form-select" value={filters.role} onChange={updateFilter('role')}>
+              <option value="">All roles</option>
+              <option value="job_seeker">Job seeker</option>
+              <option value="employer">Employer</option>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div className="col-sm-6 col-lg-2">
+            <label className="hp-label form-label">Status</label>
+            <select className="form-select" value={filters.status} onChange={updateFilter('status')}>
+              <option value="">All statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div className="col-lg-3 d-flex gap-2">
+            <button className="btn hp-btn-accent flex-grow-1">Apply filters</button>
+            <button type="button" className="btn hp-btn-outline" onClick={resetFilters}>Reset</button>
+          </div>
+        </div>
+      </form>
+
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        {!loading && !error && <p className="hp-muted mb-0">{total} matching user{total === 1 ? '' : 's'}</p>}
+        <button type="button" className="btn hp-btn-outline btn-sm ms-auto" onClick={exportUsers}>
+          Export CSV
+        </button>
+      </div>
+
       {loading && <p className="hp-muted">Loading users…</p>}
       {error && <p className="text-danger">{error}</p>}
-      {!loading && !error && <p className="hp-muted mb-3">{total} total user{total === 1 ? '' : 's'}</p>}
 
       <div className="d-flex flex-column gap-2">
         {users.map((u) => (

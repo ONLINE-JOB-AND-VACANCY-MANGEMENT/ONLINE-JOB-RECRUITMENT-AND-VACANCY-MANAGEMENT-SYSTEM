@@ -21,6 +21,10 @@ class JobController extends Controller
 
     public function show(Job $job)
     {
+        if ($job->status === 'open' && $job->end_date && $job->end_date->isBefore(today())) {
+            $job->update(['status' => 'closed']);
+        }
+
         // Same lazy-loading class of bug as the /bookmarks 500: a logged-in job
         // seeker viewing a job's detail page hits JobResource's is_bookmarked check,
         // which reads $this->bookmarks — never loaded here, so it threw under

@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [UserController::class, 'updateProfile']);
+    Route::post('/change-password', [UserController::class, 'changePassword']);
     Route::get('/bookmarks', [BookmarkController::class, 'index']);
     Route::post('/jobs/{job}/bookmark', [BookmarkController::class, 'store']);
     Route::delete('/jobs/{job}/bookmark', [BookmarkController::class, 'destroy']);
@@ -55,6 +56,7 @@ Route::middleware(['auth:sanctum', 'role:manager'])->group(function () {
 // Manager or HR
 Route::middleware(['auth:sanctum', 'role:manager,employer'])->group(function () {
     Route::post('/job-titles', [JobTitleController::class, 'store']);
+    Route::post('/skills', [SkillController::class, 'store']);
     Route::get('/requisitions', [JobRequisitionController::class, 'index']);
     Route::get('/requisitions/{requisition}', [JobRequisitionController::class, 'show']);
 });
@@ -71,7 +73,6 @@ Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
 
     Route::delete('/job-titles/{jobTitle}', [JobTitleController::class, 'destroy']);
 
-    Route::post('/skills', [SkillController::class, 'store']);
     Route::delete('/skills/{skill}', [SkillController::class, 'destroy']);
 
     Route::post('/requisitions/{requisition}/approve', [JobRequisitionController::class, 'approve']);
@@ -96,6 +97,7 @@ Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
 // Admin only
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/export', [UserController::class, 'export']);
     Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive']);
     Route::post('/staff', [UserController::class, 'storeStaff']);
 });

@@ -26,7 +26,7 @@ class Job extends Model
     // fetch of a Job — index, show, paginated lists, route-model binding, all of it —
     // has everything JobResource needs, with no more per-controller call sites to
     // individually get right or wrong.
-    protected $with = ['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks'];
+    protected $with = ['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks', 'company'];
 
     protected function casts(): array
     {

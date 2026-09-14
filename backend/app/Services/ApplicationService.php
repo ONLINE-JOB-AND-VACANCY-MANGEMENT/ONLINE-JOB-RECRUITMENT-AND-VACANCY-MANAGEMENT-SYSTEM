@@ -18,6 +18,10 @@ class ApplicationService
 
     public function apply(Job $job, array $data, $resumeFile = null): Application
     {
+        if ($job->end_date && $job->end_date->isBefore(today())) {
+            $job->update(['status' => 'closed']);
+        }
+
         if ($job->status !== 'open') {
             throw new \Exception('This job is no longer accepting applications.');
         }
@@ -116,6 +120,7 @@ class ApplicationService
             'scheduled_at' => $data['scheduled_at'],
             'location' => $data['location'] ?? null,
             'mode' => $data['mode'] ?? 'onsite',
+            'meeting_link' => $data['meeting_link'] ?? null,
             'status' => 'scheduled',
         ]);
         $application->update(['status' => 'interview_scheduled']);

@@ -18,10 +18,11 @@ function ScheduleForm({ kind, onSubmit, onCancel, submitting }) {
   const [scheduledAt, setScheduledAt] = useState('')
   const [location, setLocation] = useState('')
   const [mode, setMode] = useState('onsite')
+  const [meetingLink, setMeetingLink] = useState('')
 
   function handleSubmit(e) {
     e.preventDefault()
-    onSubmit({ scheduled_at: scheduledAt, location, mode })
+    onSubmit({ scheduled_at: scheduledAt, location, mode, meeting_link: mode === 'online' ? meetingLink : '' })
   }
 
   return (
@@ -50,6 +51,19 @@ function ScheduleForm({ kind, onSubmit, onCancel, submitting }) {
           </select>
         </div>
       </div>
+      {kind === 'interview' && mode === 'online' && (
+        <div className="mt-3">
+          <label className="hp-label form-label">Online meeting link</label>
+          <input
+            type="url"
+            className="form-control"
+            required
+            placeholder="https://meet.example.com/..."
+            value={meetingLink}
+            onChange={(e) => setMeetingLink(e.target.value)}
+          />
+        </div>
+      )}
       <div className="d-flex gap-2 mt-3">
         <button type="submit" className="btn hp-btn-accent btn-sm" disabled={submitting}>
           {submitting ? 'Saving…' : `Confirm ${kind}`}
@@ -187,6 +201,7 @@ export default function JobApplicants() {
                 <p className="hp-muted mt-1 mb-0">
                   Interview: {new Date(app.interview.scheduled_at).toLocaleString()} · {app.interview.mode}
                   {app.interview.location ? ` · ${app.interview.location}` : ''}
+                  {app.interview.meeting_link && <> · <a href={app.interview.meeting_link} target="_blank" rel="noreferrer">Join meeting</a></>}
                 </p>
               )}
 

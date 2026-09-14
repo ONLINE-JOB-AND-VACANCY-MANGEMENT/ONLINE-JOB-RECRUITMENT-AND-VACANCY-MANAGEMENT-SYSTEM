@@ -17,7 +17,7 @@ class SkillController extends Controller
 
     public function store(Request $request)
     {
-        if ($request->user()->role?->name !== 'employer') {
+        if (!in_array($request->user()->role?->name, ['employer', 'manager'])) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 

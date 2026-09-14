@@ -26,6 +26,7 @@ class JobResource extends JsonResource
             'job_title' => $this->jobTitle?->name,
             'department' => $this->jobTitle?->department?->name,
             'main_category' => $this->jobTitle?->department?->mainCategory?->name,
+            'company' => $this->company?->name,
             'skills' => $this->skills->pluck('name'),
             'posted_by' => $this->postedBy?->name,
             'applications_count' => $this->whenCounted('applications'),
