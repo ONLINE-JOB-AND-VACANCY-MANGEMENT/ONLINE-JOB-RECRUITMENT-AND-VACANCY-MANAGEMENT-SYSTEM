@@ -173,7 +173,11 @@ export default function EmployerRequisitions() {
       <div className="d-flex flex-column gap-3">
         {requisitions.map((req) => {
           const isBusy = busyId === req.id
-          const canEditHrFields = req.status === 'approved' || req.status === 'ready_to_post'
+          // A job posting doesn't move the requisition off "ready_to_post" once
+          // created, so once has_job_posting is true the salary/dates are already
+          // live on that public posting — editing them here would silently diverge
+          // from what applicants see, so it's locked out from this point on.
+          const canEditHrFields = (req.status === 'approved' || req.status === 'ready_to_post') && !req.has_job_posting
           return (
             <div className="hp-card" key={req.id}>
               <div className="d-flex flex-wrap justify-content-between gap-3 mb-3">
@@ -243,7 +247,11 @@ export default function EmployerRequisitions() {
                     Create job posting
                   </Link>
                 )}
-                {req.has_job_posting && <span className="hp-muted">Job posting already created.</span>}
+                {req.has_job_posting && (
+                  <span className="hp-muted">
+                    A job posting has already been created from this requisition — salary and dates are now locked.
+                  </span>
+                )}
               </div>
 
               {openReject === req.id && (

@@ -17,6 +17,17 @@ class Job extends Model
         'experience_level', 'status', 'published_at', 'start_date', 'end_date',
     ];
 
+    // JobResource unconditionally reads jobTitle->department->mainCategory, skills,
+    // and postedBy, plus bookmarks whenever the viewer is a job seeker. Missing any
+    // ONE of these on any ONE call site throws under Model::preventLazyLoading() —
+    // that's the exact bug that hit /bookmarks twice in a row (bookmarks, then
+    // postedBy, because 'posted_by' is built before 'is_bookmarked' in the resource
+    // array so it fails first). Declaring the full set here means every standard
+    // fetch of a Job — index, show, paginated lists, route-model binding, all of it —
+    // has everything JobResource needs, with no more per-controller call sites to
+    // individually get right or wrong.
+    protected $with = ['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks'];
+
     protected function casts(): array
     {
         return [

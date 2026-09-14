@@ -19,8 +19,16 @@ class RegisterRequest extends FormRequest
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => 'required|in:job_seeker',
-            'phone' => 'nullable|string|max:20',
+            // Required, not optional, per the latest requirements — a job seeker must
+            // provide their full name breakdown and a phone number at registration.
+            'phone' => 'required|string|max:20',
             'address' => 'nullable|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'cgpa' => 'nullable|numeric|min:0|max:4',
+            'graduation_university' => 'nullable|string|max:255',
+            'worked_company' => 'nullable|string|max:255',
         ];
     }
 }

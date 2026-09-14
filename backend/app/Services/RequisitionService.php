@@ -52,6 +52,15 @@ class RequisitionService
             throw new \Exception('Salary and dates can only be adjusted on an approved requisition.');
         }
 
+        // Posting a job from a requisition doesn't change the requisition's status
+        // away from 'ready_to_post', so without this check HR could keep editing
+        // salary/dates here indefinitely even after the job is already live and
+        // publicly visible with the original values baked in — silently diverging
+        // from what applicants actually see.
+        if ($requisition->jobPosting()->exists()) {
+            throw new \Exception('This requisition has already been posted as a public job — salary and dates can no longer be edited here.');
+        }
+
         $requisition->update($data);
 
         return $requisition->load(['jobTitle.department.mainCategory', 'skills']);

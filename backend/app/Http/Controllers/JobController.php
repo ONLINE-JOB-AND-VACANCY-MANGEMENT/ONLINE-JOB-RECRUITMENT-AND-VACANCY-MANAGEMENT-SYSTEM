@@ -21,7 +21,11 @@ class JobController extends Controller
 
     public function show(Job $job)
     {
-        return new JobResource($job->load(['jobTitle.department.mainCategory', 'skills']));
+        // Same lazy-loading class of bug as the /bookmarks 500: a logged-in job
+        // seeker viewing a job's detail page hits JobResource's is_bookmarked check,
+        // which reads $this->bookmarks — never loaded here, so it threw under
+        // Model::preventLazyLoading(). Hadn't been reported yet, but was real.
+        return new JobResource($job->load(['jobTitle.department.mainCategory', 'skills', 'bookmarks']));
     }
 
     public function store(StoreJobRequest $request)
@@ -37,7 +41,9 @@ class JobController extends Controller
 
     public function destroy(Job $job)
     {
-        if ($job->posted_by !== auth()->id() && auth()->user()->role?->name !== 'admin') {
+        // Single-organization system: any HR (employer) account or admin manages any
+        // job, regardless of who originally posted it.
+        if (!in_array(auth()->user()->role?->name, ['employer', 'admin'])) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 

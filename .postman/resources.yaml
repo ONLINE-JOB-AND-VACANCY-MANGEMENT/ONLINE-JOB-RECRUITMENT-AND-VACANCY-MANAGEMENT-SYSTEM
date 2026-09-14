@@ -6,7 +6,7 @@ workspace:
 
 cloudResources:
   collections:
-    ../postman/collections/AASTU Job Portal API: 8b7c1aea-eade-42dc-ac89-8c82daebd857
+    ../postman/collections/AASTU Job Portal API: 514d21ec-f7fa-4009-9ce7-334b2ca3bb40
 
 # All resources in the `postman/` folder are automatically registered in Local View.
 # Point to additional files outside the `postman/` folder to register them individually. Example:

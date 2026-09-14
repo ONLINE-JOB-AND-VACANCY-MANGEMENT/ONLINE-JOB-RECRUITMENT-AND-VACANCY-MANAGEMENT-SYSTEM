@@ -12,6 +12,10 @@ class ApplicationService
 {
     public function __construct(protected FileUploadService $fileUploadService) {}
 
+    // Once an application lands on either of these, it's done — no further status
+    // changes or scheduling should be possible from it.
+    private const TERMINAL_STATUSES = ['hired', 'rejected'];
+
     public function apply(Job $job, array $data, $resumeFile = null): Application
     {
         if ($job->status !== 'open') {
@@ -50,6 +54,10 @@ class ApplicationService
 
     public function updateStatus(Application $application, string $status): Application
     {
+        if (in_array($application->status, self::TERMINAL_STATUSES, true)) {
+            throw new \Exception("This application has already been {$application->status} and can no longer be updated.");
+        }
+
         $application->update(['status' => $status]);
         $application->load(['user', 'job', 'resume']);
 
@@ -75,6 +83,10 @@ class ApplicationService
 
     public function scheduleExam(Application $application, array $data): Application
     {
+        if (in_array($application->status, self::TERMINAL_STATUSES, true)) {
+            throw new \Exception("This application has already been {$application->status} and can no longer be scheduled.");
+        }
+
         $application->exam()->updateOrCreate([], [
             'scheduled_at' => $data['scheduled_at'],
             'location' => $data['location'] ?? null,
@@ -96,6 +108,10 @@ class ApplicationService
 
     public function scheduleInterview(Application $application, array $data): Application
     {
+        if (in_array($application->status, self::TERMINAL_STATUSES, true)) {
+            throw new \Exception("This application has already been {$application->status} and can no longer be scheduled.");
+        }
+
         $application->interview()->updateOrCreate([], [
             'scheduled_at' => $data['scheduled_at'],
             'location' => $data['location'] ?? null,

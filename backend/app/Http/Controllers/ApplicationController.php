@@ -41,8 +41,8 @@ class ApplicationController extends Controller
         return ApplicationResource::collection($applications);
     }
 
-    // CSV export of every applicant for a job — name, contact info, status, cover
-    // letter, resume filename, and exam/interview scheduling if present.
+    // Per-job CSV export — name, contact info, status, cover letter, resume filename,
+    // exam/interview scheduling, and the job's title/department/main category.
     public function exportApplicants(Request $request, Job $job)
     {
         if ($request->user()->role?->name !== 'employer') {
@@ -50,6 +50,7 @@ class ApplicationController extends Controller
         }
 
         $applications = $job->applications()->with(['user', 'resume', 'exam', 'interview'])->get();
+        $job->load('jobTitle.department.mainCategory');
 
         $filename = 'applicants-job-' . $job->id . '-' . now()->format('Ymd_His') . '.csv';
 
@@ -61,9 +62,10 @@ class ApplicationController extends Controller
         $columns = [
             'Name', 'Email', 'Phone', 'Status', 'Applied At', 'Cover Letter',
             'Resume File', 'Exam Scheduled At', 'Interview Scheduled At',
+            'Job Title', 'Department', 'Main Category',
         ];
 
-        $callback = function () use ($applications, $columns) {
+        $callback = function () use ($applications, $columns, $job) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
@@ -72,6 +74,64 @@ class ApplicationController extends Controller
                     $application->user?->name,
                     $application->user?->email,
                     $application->user?->phone,
+                    $application->status,
+                    optional($application->created_at)->format('Y-m-d H:i'),
+                    $application->cover_letter,
+                    $application->resume?->original_name,
+                    optional($application->exam?->scheduled_at)->format('Y-m-d H:i'),
+                    optional($application->interview?->scheduled_at)->format('Y-m-d H:i'),
+                    $job->jobTitle?->name,
+                    $job->jobTitle?->department?->name,
+                    $job->jobTitle?->department?->mainCategory?->name,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    // One-time whole-portal CSV export — every applicant across every job in a single
+    // file, each row carrying its own job title/department/main category.
+    public function exportAllApplicants(Request $request)
+    {
+        if ($request->user()->role?->name !== 'employer') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $applications = Application::with([
+            'user', 'resume', 'exam', 'interview',
+            'job.jobTitle.department.mainCategory',
+        ])->latest()->get();
+
+        $filename = 'all-applicants-' . now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $columns = [
+            'Name', 'Email', 'Phone', 'Job Title', 'Department', 'Main Category',
+            'Status', 'Applied At', 'Cover Letter', 'Resume File',
+            'Exam Scheduled At', 'Interview Scheduled At',
+        ];
+
+        $callback = function () use ($applications, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($applications as $application) {
+                $job = $application->job;
+
+                fputcsv($file, [
+                    $application->user?->name,
+                    $application->user?->email,
+                    $application->user?->phone,
+                    $job?->title,
+                    $job?->jobTitle?->department?->name,
+                    $job?->jobTitle?->department?->mainCategory?->name,
                     $application->status,
                     optional($application->created_at)->format('Y-m-d H:i'),
                     $application->cover_letter,
@@ -101,7 +161,11 @@ class ApplicationController extends Controller
 
         $request->validate(['status' => 'required|in:applied,shortlisted,hired,rejected']);
 
-        $application = $this->applicationService->updateStatus($application, $request->status);
+        try {
+            $application = $this->applicationService->updateStatus($application, $request->status);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
 
         return response()->json(['message' => 'Status updated', 'application' => new ApplicationResource($application)]);
     }
@@ -111,8 +175,15 @@ class ApplicationController extends Controller
         if ($request->user()->role?->name !== 'employer') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
+
         $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
-        $application = $this->applicationService->scheduleExam($application, $data);
+
+        try {
+            $application = $this->applicationService->scheduleExam($application, $data);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
+
         return response()->json(['message' => 'Exam scheduled', 'application' => new ApplicationResource($application)]);
     }
 
@@ -123,7 +194,13 @@ class ApplicationController extends Controller
         }
 
         $data = $request->validate(['scheduled_at' => 'required|date', 'location' => 'nullable|string', 'mode' => 'nullable|in:onsite,online']);
-        $application = $this->applicationService->scheduleInterview($application, $data);
+
+        try {
+            $application = $this->applicationService->scheduleInterview($application, $data);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        }
+
         return response()->json(['message' => 'Interview scheduled', 'application' => new ApplicationResource($application)]);
     }
 }

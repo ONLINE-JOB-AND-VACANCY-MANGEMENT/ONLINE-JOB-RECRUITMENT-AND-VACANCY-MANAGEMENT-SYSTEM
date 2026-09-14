@@ -28,6 +28,11 @@ export default function RequisitionForm() {
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
   const [readOnly, setReadOnly] = useState(false)
+  // Deterministic prefill for CategoryPicker when editing — sourced directly from
+  // JobRequisitionResource's department_id/main_category_id fields, so the picker
+  // never has to guess the chain by brute-force searching (AASTU-JobPortal-HANDOFF.md §6.3).
+  const [initialMainCategoryId, setInitialMainCategoryId] = useState(null)
+  const [initialDepartmentId, setInitialDepartmentId] = useState(null)
 
   useEffect(() => {
     async function init() {
@@ -42,6 +47,9 @@ export default function RequisitionForm() {
           setReadOnly(true)
           toast.info('Only draft requisitions can be edited.')
         }
+
+        setInitialMainCategoryId(req.main_category_id ?? null)
+        setInitialDepartmentId(req.department_id ?? null)
 
         setForm({
           job_title_id: req.job_title_id ?? '',
@@ -111,6 +119,8 @@ export default function RequisitionForm() {
           value={form.job_title_id}
           onChange={(jobTitleId) => setForm({ ...form, job_title_id: jobTitleId })}
           disabled={readOnly}
+          initialMainCategoryId={initialMainCategoryId}
+          initialDepartmentId={initialDepartmentId}
         />
         {errors.job_title_id && <p className="text-danger small">{errors.job_title_id[0]}</p>}
 

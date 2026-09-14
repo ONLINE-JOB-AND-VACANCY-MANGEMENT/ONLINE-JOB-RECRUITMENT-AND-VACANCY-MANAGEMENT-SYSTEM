@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import { toast } from 'react-toastify'
 
-const emptyForm = { name: '', email: '', password: '', password_confirmation: '', role: 'employer', phone: '' }
+const emptyForm = { name: '', email: '', password: '', password_confirmation: '', role: 'employer', phone: '', department_id: '' }
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
+  const [departments, setDepartments] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [busyId, setBusyId] = useState(null)
@@ -31,7 +32,13 @@ export default function AdminUsers() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => load(1), [])
+  useEffect(() => load(1), []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    // Departments are only needed for the manager department picker, but cheap
+    // enough to load up front so switching the role dropdown is instant.
+    api.get('/departments').then(({ data }) => setDepartments(data)).catch(() => {})
+  }, [])
 
   async function toggleActive(user) {
     setBusyId(user.id)
@@ -96,6 +103,19 @@ export default function AdminUsers() {
             <option value="manager">Manager</option>
           </select>
 
+          {form.role === 'manager' && (
+            <>
+              <label className="hp-label form-label">Department</label>
+              <select className="form-select mb-3" value={form.department_id} onChange={update('department_id')}>
+                <option value="">No department yet</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+              {errors.department_id && <p className="text-danger small">{errors.department_id[0]}</p>}
+            </>
+          )}
+
           <label className="hp-label form-label">Phone (optional)</label>
           <input className="form-control mb-3" value={form.phone} onChange={update('phone')} />
 
@@ -127,7 +147,10 @@ export default function AdminUsers() {
           <div className="hp-card d-flex flex-wrap justify-content-between align-items-center gap-3 py-3" key={u.id}>
             <div>
               <p className="hp-card-title mb-1" style={{ fontSize: '1rem' }}>{u.name}</p>
-              <p className="hp-card-meta mb-0">{u.email} · {u.role?.replace('_', ' ') ?? 'no role'}</p>
+              <p className="hp-card-meta mb-0">
+                {u.email} · {u.role?.replace('_', ' ') ?? 'no role'}
+                {u.department ? ` · ${u.department}` : ''}
+              </p>
             </div>
             <div className="d-flex align-items-center gap-3">
               <span className={`hp-tag ${u.is_active ? '' : 'hp-tag--muted'}`}>

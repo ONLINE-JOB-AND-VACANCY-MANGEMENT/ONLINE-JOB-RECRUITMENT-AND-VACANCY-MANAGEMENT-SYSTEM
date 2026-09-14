@@ -96,7 +96,11 @@ class JobService
             $job->skills()->sync($skillIds);
         }
 
-        return $job->load(['jobTitle.department.mainCategory', 'skills', 'requisition']);
+        // $with on the Job model doesn't retroactively apply to an instance built via
+        // create() in this same request (Eloquent only applies it when a *new query*
+        // is run), so this still needs to be explicit — same reason
+        // AuthService::register() explicitly loads 'role' after User::create().
+        return $job->load(['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks', 'requisition']);
     }
 
     public function update(Job $job, array $data): Job
@@ -107,7 +111,7 @@ class JobService
             $job->skills()->sync($data['skills'] ?? []);
         }
 
-        return $job->load(['jobTitle.department.mainCategory', 'skills']);
+        return $job->load(['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks']);
     }
 
     public function delete(Job $job): void

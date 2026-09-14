@@ -7,8 +7,24 @@ import { toast } from 'react-toastify'
  * can create a new job title under an existing department (matching backend
  * permissions); creating a new department or main category is HR-only and happens
  * on a separate admin/HR screen, not inline here.
+ *
+ * Two prefill paths:
+ * - `initialMainCategoryId` + `initialDepartmentId`: deterministic prefill. Pass these
+ *   when editing something that already has a resolved chain (e.g. a requisition —
+ *   JobRequisitionResource now returns both IDs directly). Preferred whenever available.
+ * - No initial IDs, just `value` (a job_title_id): the picker starts empty and the
+ *   user picks a fresh chain. Used for brand-new records (new requisition, new direct
+ *   job post) where there's nothing to prefill.
+ *
+ * IMPORTANT: nothing in here renders a real <form>. This component is always used
+ * inside a parent <form onSubmit={...}>, and nested <form> elements are invalid HTML —
+ * browsers don't reliably scope an inner submit to the inner form, so a nested form
+ * here previously caused the *outer* form's submit handler to fire instead (or as
+ * well), kicking the user out of the page (AASTU-JobPortal-HANDOFF.md §6.2). The
+ * inline "create a new job title" affordance below uses a plain <div> and a
+ * type="button" handler for exactly this reason — keep it that way.
  */
-export default function CategoryPicker({ value, onChange, disabled }) {
+export default function CategoryPicker({ value, onChange, disabled, initialMainCategoryId, initialDepartmentId }) {
   const [mainCategories, setMainCategories] = useState([])
   const [departments, setDepartments] = useState([])
   const [jobTitles, setJobTitles] = useState([])
@@ -24,31 +40,23 @@ export default function CategoryPicker({ value, onChange, disabled }) {
     api.get('/main-categories').then(({ data }) => setMainCategories(data))
   }, [])
 
-  // If editing an existing job title (value passed in), walk back up the chain to
-  // pre-select main category + department once job titles are known.
+  // Deterministic prefill from explicit IDs passed by the parent. No brute-force
+  // searching — just fetch the two lists we already know we need.
   useEffect(() => {
-    if (!value || !mainCategories.length) return
+    if (!initialMainCategoryId || !initialDepartmentId) return
 
-    async function resolveChain() {
-      // Try every main category's departments until we find the one containing `value`.
-      for (const mc of mainCategories) {
-        const { data: depts } = await api.get('/departments', { params: { main_category_id: mc.id } })
-        for (const dept of depts) {
-          const { data: titles } = await api.get('/job-titles', { params: { department_id: dept.id } })
-          if (titles.some((t) => t.id === Number(value))) {
-            setMainCategoryId(mc.id)
-            setDepartmentId(dept.id)
-            setDepartments(depts)
-            setJobTitles(titles)
-            return
-          }
-        }
-      }
-    }
+    setMainCategoryId(String(initialMainCategoryId))
+    setDepartmentId(String(initialDepartmentId))
 
-    resolveChain()
+    api
+      .get('/departments', { params: { main_category_id: initialMainCategoryId } })
+      .then(({ data }) => setDepartments(data))
+
+    api
+      .get('/job-titles', { params: { department_id: initialDepartmentId } })
+      .then(({ data }) => setJobTitles(data))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, mainCategories])
+  }, [initialMainCategoryId, initialDepartmentId])
 
   function handleMainCategoryChange(e) {
     const id = e.target.value
@@ -74,8 +82,8 @@ export default function CategoryPicker({ value, onChange, disabled }) {
     api.get('/job-titles', { params: { department_id: id } }).then(({ data }) => setJobTitles(data))
   }
 
-  async function handleCreateTitle(e) {
-    e.preventDefault()
+  async function handleCreateTitle() {
+    if (!newTitleName.trim()) return
     setSubmittingTitle(true)
     try {
       const { data } = await api.post('/job-titles', { department_id: departmentId, name: newTitleName })
@@ -136,24 +144,24 @@ export default function CategoryPicker({ value, onChange, disabled }) {
               + This job title doesn't exist yet
             </button>
           ) : (
-            <form onSubmit={handleCreateTitle} className="hp-schedule-form mt-2">
+            // Plain <div>, not <form> — see the component-level note above.
+            <div className="hp-schedule-form mt-2">
               <label className="hp-label form-label">New job title name</label>
               <div className="d-flex gap-2">
                 <input
                   className="form-control"
-                  required
                   value={newTitleName}
                   onChange={(e) => setNewTitleName(e.target.value)}
                   placeholder="e.g. Junior Software Engineer"
                 />
-                <button className="btn hp-btn-accent btn-sm" disabled={submittingTitle}>
+                <button type="button" className="btn hp-btn-accent btn-sm" onClick={handleCreateTitle} disabled={submittingTitle}>
                   {submittingTitle ? 'Adding…' : 'Add'}
                 </button>
                 <button type="button" className="btn hp-btn-outline btn-sm" onClick={() => setCreatingTitle(false)}>
                   Cancel
                 </button>
               </div>
-            </form>
+            </div>
           )}
         </div>
       )}

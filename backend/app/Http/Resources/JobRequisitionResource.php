@@ -11,7 +11,14 @@ class JobRequisitionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'job_title_id' => $this->job_title_id,
             'job_title' => $this->jobTitle?->name,
+            // Plain IDs alongside the existing name strings, so the frontend can
+            // pre-populate the CategoryPicker dropdowns directly when editing an
+            // existing requisition instead of brute-force searching every department
+            // and job-title list to find a match (AASTU-JobPortal-HANDOFF.md §6.3).
+            'department_id' => $this->jobTitle?->department_id,
+            'main_category_id' => $this->jobTitle?->department?->main_category_id,
             'department' => $this->jobTitle?->department?->name,
             'main_category' => $this->jobTitle?->department?->mainCategory?->name,
             'job_type' => $this->job_type,

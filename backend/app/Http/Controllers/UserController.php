@@ -25,7 +25,7 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return response()->json(['message' => 'Profile updated', 'user' => new UserResource($user->load('role'))]);
+        return response()->json(['message' => 'Profile updated', 'user' => new UserResource($user->load(['role', 'department']))]);
     }
 
     // Admin-only user management
@@ -35,7 +35,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        return UserResource::collection(User::with('role')->latest()->paginate(20));
+        return UserResource::collection(User::with(['role', 'department'])->latest()->paginate(20));
     }
 
     public function toggleActive(Request $request, User $user)
@@ -50,17 +50,18 @@ class UserController extends Controller
     }
 
     public function storeStaff(StoreStaffRequest $request)
-{
-    $role = \App\Models\Role::where('name', $request->role)->firstOrFail();
+    {
+        $role = \App\Models\Role::where('name', $request->role)->firstOrFail();
 
-    $user = \App\Models\User::create([
-        'role_id' => $role->id,
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => \Illuminate\Support\Facades\Hash::make($request->password),
-        'phone' => $request->phone,
-    ]);
+        $user = \App\Models\User::create([
+            'role_id' => $role->id,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'phone' => $request->phone,
+            'department_id' => $request->department_id,
+        ]);
 
-    return response()->json(['message' => 'Staff account created', 'user' => new UserResource($user->load('role'))], 201);
-}
+        return response()->json(['message' => 'Staff account created', 'user' => new UserResource($user->load(['role', 'department']))], 201);
+    }
 }

@@ -31,6 +31,13 @@ export default function DirectJobPostForm() {
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
 
+  // Inline "create a new skill" affordance (AASTU-JobPortal-HANDOFF.md §6.5) — same
+  // pattern as CategoryPicker's inline job-title creation: a plain <div>, never a
+  // nested <form>, since this whole block renders inside the page's outer form.
+  const [creatingSkill, setCreatingSkill] = useState(false)
+  const [newSkillName, setNewSkillName] = useState('')
+  const [submittingSkill, setSubmittingSkill] = useState(false)
+
   useEffect(() => {
     api.get('/skills').then(({ data }) => setAllSkills(Array.isArray(data) ? data : data.data ?? []))
   }, [])
@@ -44,6 +51,23 @@ export default function DirectJobPostForm() {
       ...prev,
       skills: prev.skills.includes(skillId) ? prev.skills.filter((s) => s !== skillId) : [...prev.skills, skillId],
     }))
+  }
+
+  async function handleCreateSkill() {
+    if (!newSkillName.trim()) return
+    setSubmittingSkill(true)
+    try {
+      const { data } = await api.post('/skills', { name: newSkillName })
+      toast.success('Skill created')
+      setAllSkills((prev) => [...prev, data.skill])
+      setForm((prev) => ({ ...prev, skills: [...prev.skills, data.skill.id] }))
+      setNewSkillName('')
+      setCreatingSkill(false)
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Could not create skill.')
+    } finally {
+      setSubmittingSkill(false)
+    }
   }
 
   async function handleSubmit(e) {
@@ -144,6 +168,32 @@ export default function DirectJobPostForm() {
               {skill.name}
             </label>
           ))}
+        </div>
+
+        <div className="mt-1">
+          {!creatingSkill ? (
+            <button type="button" className="btn hp-btn-outline btn-sm" onClick={() => setCreatingSkill(true)}>
+              + This skill doesn't exist yet
+            </button>
+          ) : (
+            <div className="hp-schedule-form mt-2">
+              <label className="hp-label form-label">New skill name</label>
+              <div className="d-flex gap-2">
+                <input
+                  className="form-control"
+                  value={newSkillName}
+                  onChange={(e) => setNewSkillName(e.target.value)}
+                  placeholder="e.g. Figma"
+                />
+                <button type="button" className="btn hp-btn-accent btn-sm" onClick={handleCreateSkill} disabled={submittingSkill}>
+                  {submittingSkill ? 'Adding…' : 'Add'}
+                </button>
+                <button type="button" className="btn hp-btn-outline btn-sm" onClick={() => setCreatingSkill(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <button className="btn hp-btn-accent w-100 mt-4" disabled={submitting}>

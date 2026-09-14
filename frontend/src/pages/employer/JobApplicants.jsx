@@ -12,6 +12,8 @@ const STAGES = [
   { key: 'hired', label: 'Hired' },
 ]
 
+const TERMINAL_STATUSES = ['hired', 'rejected']
+
 function ScheduleForm({ kind, onSubmit, onCancel, submitting }) {
   const [scheduledAt, setScheduledAt] = useState('')
   const [location, setLocation] = useState('')
@@ -151,6 +153,10 @@ export default function JobApplicants() {
         {applications.map((app) => {
           const isBusy = busyId === app.id
           const activeForm = openForm[app.id]
+          // Once an application has been hired or rejected, it's finalized — none of
+          // the status-changing controls (shortlist, schedule, hire, reject) should
+          // still be usable from here.
+          const isFinalized = TERMINAL_STATUSES.includes(app.status)
           return (
             <div className="hp-card" key={app.id}>
               <div className="d-flex flex-wrap justify-content-between gap-3 mb-3">
@@ -184,45 +190,51 @@ export default function JobApplicants() {
                 </p>
               )}
 
-              <div className="d-flex flex-wrap gap-2 mt-3">
-                <button
-                  className="btn hp-btn-outline btn-sm"
-                  disabled={isBusy}
-                  onClick={() => updateStatus(app.id, 'shortlisted')}
-                >
-                  Shortlist
-                </button>
-                <button
-                  className="btn hp-btn-outline btn-sm"
-                  disabled={isBusy}
-                  onClick={() => setOpenForm((prev) => ({ ...prev, [app.id]: prev[app.id] === 'exam' ? null : 'exam' }))}
-                >
-                  Schedule exam
-                </button>
-                <button
-                  className="btn hp-btn-outline btn-sm"
-                  disabled={isBusy}
-                  onClick={() => setOpenForm((prev) => ({ ...prev, [app.id]: prev[app.id] === 'interview' ? null : 'interview' }))}
-                >
-                  Schedule interview
-                </button>
-                <button
-                  className="btn hp-btn-accent btn-sm"
-                  disabled={isBusy}
-                  onClick={() => updateStatus(app.id, 'hired')}
-                >
-                  Hire
-                </button>
-                <button
-                  className="btn btn-sm hp-btn-reject"
-                  disabled={isBusy}
-                  onClick={() => updateStatus(app.id, 'rejected')}
-                >
-                  Reject
-                </button>
-              </div>
+              {!isFinalized ? (
+                <div className="d-flex flex-wrap gap-2 mt-3">
+                  <button
+                    className="btn hp-btn-outline btn-sm"
+                    disabled={isBusy}
+                    onClick={() => updateStatus(app.id, 'shortlisted')}
+                  >
+                    Shortlist
+                  </button>
+                  <button
+                    className="btn hp-btn-outline btn-sm"
+                    disabled={isBusy}
+                    onClick={() => setOpenForm((prev) => ({ ...prev, [app.id]: prev[app.id] === 'exam' ? null : 'exam' }))}
+                  >
+                    Schedule exam
+                  </button>
+                  <button
+                    className="btn hp-btn-outline btn-sm"
+                    disabled={isBusy}
+                    onClick={() => setOpenForm((prev) => ({ ...prev, [app.id]: prev[app.id] === 'interview' ? null : 'interview' }))}
+                  >
+                    Schedule interview
+                  </button>
+                  <button
+                    className="btn hp-btn-accent btn-sm"
+                    disabled={isBusy}
+                    onClick={() => updateStatus(app.id, 'hired')}
+                  >
+                    Hire
+                  </button>
+                  <button
+                    className="btn btn-sm hp-btn-reject"
+                    disabled={isBusy}
+                    onClick={() => updateStatus(app.id, 'rejected')}
+                  >
+                    Reject
+                  </button>
+                </div>
+              ) : (
+                <p className="hp-muted mt-3 mb-0">
+                  This application has been {app.status === 'hired' ? 'hired' : 'rejected'} and can no longer be changed.
+                </p>
+              )}
 
-              {activeForm && (
+              {!isFinalized && activeForm && (
                 <ScheduleForm
                   kind={activeForm}
                   submitting={isBusy}

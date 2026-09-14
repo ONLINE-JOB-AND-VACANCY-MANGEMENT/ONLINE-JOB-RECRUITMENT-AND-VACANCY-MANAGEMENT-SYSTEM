@@ -38,10 +38,30 @@ export function AuthProvider({ children }) {
         setUser(data)
         localStorage.setItem('auth_user', JSON.stringify(data))
       })
-      .catch(() => {
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('auth_user')
-        setUser(null)
+      .catch((err) => {
+        const status = err.response?.status
+
+        // Only a genuine 401 ("this token is not valid") means the session is
+        // actually dead — that's the one case where logging out is correct.
+        if (status === 401) {
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('auth_user')
+          setUser(null)
+          return
+        }
+
+        // Any other failure (network error, 500, CORS, timeout) keeps the cached
+        // session instead of forcing a logout. This is surfaced as a visible toast,
+        // not just a console log — if this keeps happening, screenshot the toast
+        // (it includes the exact status/response) so the exact cause can be found
+        // instead of guessing further.
+        // eslint-disable-next-line no-console
+        console.error('Session check on refresh failed (kept existing session):', err)
+        toast.error(
+          `Session check failed on refresh (status: ${status ?? 'no response / network error'}). ` +
+            'Kept your cached login — if actions stop working, this is why. Please report this exact message.',
+          { autoClose: false },
+        )
       })
       .finally(() => setLoading(false))
   }, [])

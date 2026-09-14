@@ -85,6 +85,9 @@ Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
 
     Route::get('/jobs/{job}/applicants', [ApplicationController::class, 'jobApplicants']);
     Route::get('/jobs/{job}/applicants/export', [ApplicationController::class, 'exportApplicants']);
+    // One-time whole-portal CSV export — every applicant across every job, with job
+    // title/department/main category on each row.
+    Route::get('/applicants/export-all', [ApplicationController::class, 'exportAllApplicants']);
     Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus']);
     Route::post('/applications/{application}/schedule-exam', [ApplicationController::class, 'scheduleExam']);
     Route::post('/applications/{application}/schedule-interview', [ApplicationController::class, 'scheduleInterview']);

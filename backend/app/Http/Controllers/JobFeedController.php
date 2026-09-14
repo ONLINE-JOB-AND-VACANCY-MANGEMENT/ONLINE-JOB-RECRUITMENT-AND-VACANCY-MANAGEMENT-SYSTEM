@@ -10,7 +10,7 @@ class JobFeedController extends Controller
     public function index()
     {
         $jobs = Job::where('status', 'open')
-            ->with(['jobTitle.department.mainCategory', 'skills', 'postedBy'])
+            ->with(['jobTitle.department.mainCategory', 'skills', 'postedBy', 'bookmarks'])
             ->latest()
             ->get();
 
