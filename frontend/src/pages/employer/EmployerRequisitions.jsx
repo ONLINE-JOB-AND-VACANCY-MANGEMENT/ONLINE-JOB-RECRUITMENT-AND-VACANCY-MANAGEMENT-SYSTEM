@@ -95,17 +95,26 @@ export default function EmployerRequisitions() {
   const [busyId, setBusyId] = useState(null)
   const [openReject, setOpenReject] = useState(null)
   const [openHrFields, setOpenHrFields] = useState(null)
+  const [stats, setStats] = useState({})
+  const [page, setPage] = useState(1)
+  const [lastPage, setLastPage] = useState(1)
 
-  function load() {
+  function load(targetPage = page) {
     setLoading(true)
     api
-      .get('/requisitions')
-      .then(({ data }) => setRequisitions(data.data ?? data))
+      .get(`/requisitions?page=${targetPage}`)
+      .then(({ data }) => {
+        setRequisitions(data.data ?? data)
+        setStats(data.stats ?? {})
+        setPage(targetPage)
+        setLastPage(data.meta?.last_page ?? 1)
+      })
       .catch(() => setError('Could not load requisitions.'))
       .finally(() => setLoading(false))
   }
 
   useEffect(load, [])
+
 
   async function handleApprove(id) {
     setBusyId(id)
@@ -166,6 +175,23 @@ export default function EmployerRequisitions() {
       <p className="hp-eyebrow">HR approval queue</p>
       <h1 className="hp-h1 mb-4">Review requisitions.</h1>
 
+      <div className="row g-3 mb-4">
+        {[
+          ['Total', stats.total],
+          ['Pending approval', stats.pending_approval],
+          ['Approved', stats.approved],
+          ['Rejected', stats.rejected],
+        ].map(([label, value]) => (
+          <div className="col-6 col-lg-3" key={label}>
+            <div className="hp-card h-100">
+              <p className="hp-card-meta mb-2">{label}</p>
+              <p className="hp-h2 mb-0">{value ?? '—'}</p>
+            </div>
+
+          </div>
+        ))}
+      </div>
+
       {loading && <p className="hp-muted">Loading…</p>}
       {error && <p className="text-danger">{error}</p>}
       {!loading && !error && requisitions.length === 0 && <p className="hp-muted">No requisitions yet.</p>}
@@ -179,8 +205,8 @@ export default function EmployerRequisitions() {
           // from what applicants see, so it's locked out from this point on.
           const canEditHrFields = (req.status === 'approved' || req.status === 'ready_to_post') && !req.has_job_posting
           return (
-            <div className="hp-card" key={req.id}>
-              <div className="d-flex flex-wrap justify-content-between gap-3 mb-3">
+            <div className="hp-card hp-requisition-card" key={req.id}>
+              <div className="d-flex flex-wrap justify-content-between gap-2 mb-2">
                 <div>
                   <h3 className="hp-card-title mb-1">{req.job_title}</h3>
                   <p className="hp-card-meta mb-0">
@@ -197,12 +223,13 @@ export default function EmployerRequisitions() {
                     </p>
                   )}
                 </div>
+
               </div>
 
-              <p className="hp-body-text mb-3">{req.justification}</p>
-              {req.requirements && <p className="hp-body-text mb-3"><strong>Requirements:</strong> {req.requirements}</p>}
+              <p className="hp-body-text mb-2">{req.justification}</p>
+              {req.requirements && <p className="hp-body-text mb-2"><strong>Requirements:</strong> {req.requirements}</p>}
               {req.skills?.length > 0 && (
-                <div className="hp-card-skills mb-3">
+                <div className="hp-card-skills mb-2">
                   {req.skills.map((s) => <span className="hp-tag" key={s}>{s}</span>)}
                 </div>
               )}
@@ -210,10 +237,10 @@ export default function EmployerRequisitions() {
               <StatusPipeline stages={REQ_STAGES} current={req.status} rejectedKey="rejected" rejectedLabel="Rejected" />
 
               {req.status === 'rejected' && req.rejection_reason && (
-                <p className="hp-muted mt-3 mb-0">Reason: {req.rejection_reason}</p>
+                <p className="hp-muted mt-2 mb-0">Reason: {req.rejection_reason}</p>
               )}
 
-              <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
+              <div className="d-flex flex-wrap align-items-center gap-2 mt-2">
                 {req.status === 'pending_approval' && (
                   <>
                     <button className="btn hp-btn-accent btn-sm" disabled={isBusy} onClick={() => handleApprove(req.id)}>
@@ -274,6 +301,14 @@ export default function EmployerRequisitions() {
           )
         })}
       </div>
+
+      {!loading && !error && lastPage > 1 && (
+        <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
+          <button className="btn hp-btn-outline btn-sm" disabled={page <= 1 || loading} onClick={() => load(page - 1)}>← Previous</button>
+          <span className="hp-muted">Page {page} of {lastPage}</span>
+          <button className="btn hp-btn-outline btn-sm" disabled={page >= lastPage || loading} onClick={() => load(page + 1)}>Next →</button>
+        </div>
+      )}
     </div>
   )
 }

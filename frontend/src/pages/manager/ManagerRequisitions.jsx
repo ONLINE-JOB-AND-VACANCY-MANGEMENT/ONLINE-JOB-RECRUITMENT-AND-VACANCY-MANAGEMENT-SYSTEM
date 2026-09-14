@@ -16,12 +16,20 @@ export default function ManagerRequisitions() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [busyId, setBusyId] = useState(null)
+  const [page, setPage] = useState(1)
+  const [lastPage, setLastPage] = useState(1)
+  const [stats, setStats] = useState({})
 
-  function load() {
+  function load(targetPage = page) {
     setLoading(true)
     api
-      .get('/requisitions')
-      .then(({ data }) => setRequisitions(data.data ?? data))
+      .get(`/requisitions?page=${targetPage}`)
+      .then(({ data }) => {
+        setRequisitions(data.data ?? data)
+        setPage(targetPage)
+        setLastPage(data.meta?.last_page ?? data.last_page ?? 1)
+        setStats(data.stats ?? {})
+      })
       .catch(() => setError('Could not load your requisitions.'))
       .finally(() => setLoading(false))
   }
@@ -48,7 +56,21 @@ export default function ManagerRequisitions() {
           <p className="hp-eyebrow">Your requisitions</p>
           <h1 className="hp-h1 mb-0">Request a hire.</h1>
         </div>
+
         <Link to="/manager/requisitions/new" className="btn hp-btn-accent">New requisition</Link>
+      </div>
+
+      <div className="row g-3 mb-4">
+        {[
+          ['Total', stats.total],
+          ['Pending approval', stats.pending_approval],
+          ['Approved', stats.approved],
+          ['Rejected', stats.rejected],
+        ].map(([label, value]) => (
+          <div className="col-6 col-lg-3" key={label}>
+            <div className="hp-card h-100"><p className="hp-card-meta mb-2">{label}</p><p className="hp-h2 mb-0">{value ?? '—'}</p></div>
+          </div>
+        ))}
       </div>
 
       {loading && <p className="hp-muted">Loading…</p>}
@@ -65,6 +87,7 @@ export default function ManagerRequisitions() {
                 <h3 className="hp-card-title mb-1">{req.job_title}</h3>
                 <p className="hp-card-meta mb-0">{req.main_category} · {req.department}</p>
               </div>
+
               {req.status === 'draft' && (
                 <div className="d-flex gap-2">
                   <Link to={`/manager/requisitions/${req.id}/edit`} className="btn hp-btn-outline btn-sm">
@@ -98,6 +121,13 @@ export default function ManagerRequisitions() {
           </div>
         ))}
       </div>
+      {!loading && !error && requisitions.length > 0 && (
+        <div className="d-flex justify-content-center align-items-center gap-3 mt-4">
+          <button className="btn hp-btn-outline btn-sm" disabled={page <= 1 || loading} onClick={() => load(page - 1)}>← Previous</button>
+          <span className="hp-muted">Page {page} of {lastPage}</span>
+          <button className="btn hp-btn-outline btn-sm" disabled={page >= lastPage || loading} onClick={() => load(page + 1)}>Next →</button>
+        </div>
+      )}
     </div>
   )
 }

@@ -21,6 +21,7 @@ import Register from './pages/Register'
 import NotFound from './pages/NotFound'
 import ChangePassword from './pages/ChangePassword'
 import Profile from './pages/Profile'
+import HrAnalytics from './pages/employer/HrAnalytics'
 
 export default function App() {
   return (
@@ -118,6 +119,10 @@ export default function App() {
                 <EmployerRequisitions />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/employer/analytics"
+            element={<ProtectedRoute roles={['employer']}><HrAnalytics /></ProtectedRoute>}
           />
           <Route
             path="/employer/requisitions/:id/create-job"

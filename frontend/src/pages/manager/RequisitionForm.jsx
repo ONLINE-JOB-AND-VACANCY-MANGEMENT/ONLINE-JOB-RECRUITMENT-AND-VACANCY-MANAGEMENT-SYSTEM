@@ -40,7 +40,8 @@ export default function RequisitionForm() {
   useEffect(() => {
     async function init() {
       const skillRes = await api.get('/skills')
-      setAllSkills(Array.isArray(skillRes.data) ? skillRes.data : skillRes.data.data ?? [])
+      const skills = Array.isArray(skillRes.data) ? skillRes.data : skillRes.data.data ?? []
+      setAllSkills(skills)
 
       if (isEdit) {
         const reqRes = await api.get(`/requisitions/${id}`)
@@ -62,7 +63,7 @@ export default function RequisitionForm() {
           salary_max: req.salary_max ?? '',
           justification: req.justification ?? '',
           requirements: req.requirements ?? '',
-          skills: (req.skills ?? []).map((s) => allSkills.find((as) => as.name === s)?.id).filter(Boolean),
+          skills: (req.skills ?? []).map((s) => skills.find((as) => as.name === s)?.id).filter(Boolean),
         })
       }
     }

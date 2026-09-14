@@ -57,6 +57,7 @@ export default function Sidebar() {
             <p className="hp-sidebar-section-label">HR</p>
             <NavItem to="/employer/jobs">Manage jobs</NavItem>
             <NavItem to="/employer/requisitions">Requisitions</NavItem>
+            <NavItem to="/employer/analytics">Analytics &amp; reports</NavItem>
           </>
         )}
 

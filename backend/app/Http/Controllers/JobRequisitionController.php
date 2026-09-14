@@ -28,7 +28,14 @@ class JobRequisitionController extends Controller
             $query->where('status', $request->status);
         }
 
-        return JobRequisitionResource::collection($query->latest()->paginate(15));
+        $stats = [
+            'total' => (clone $query)->count(),
+            'pending_approval' => (clone $query)->where('status', 'pending_approval')->count(),
+            'approved' => (clone $query)->whereIn('status', ['approved', 'ready_to_post'])->count(),
+            'rejected' => (clone $query)->where('status', 'rejected')->count(),
+        ];
+
+        return JobRequisitionResource::collection($query->latest()->paginate(15))->additional(['stats' => $stats]);
     }
 
     public function show(JobRequisition $requisition)

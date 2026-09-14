@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum', 'role:manager,employer'])->group(function () 
     Route::post('/job-titles', [JobTitleController::class, 'store']);
     Route::post('/skills', [SkillController::class, 'store']);
     Route::get('/requisitions', [JobRequisitionController::class, 'index']);
+    Route::get('/hr/analytics', [JobController::class, 'analytics']);
     Route::get('/requisitions/{requisition}', [JobRequisitionController::class, 'show']);
 });
 

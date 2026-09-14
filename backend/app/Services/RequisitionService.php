@@ -31,7 +31,7 @@ class RequisitionService
             throw new \Exception('Only draft requisitions can be edited.');
         }
 
-        $skillIds = $data['skills'] ?? null;
+        $skillIds = array_key_exists('skills', $data) ? $data['skills'] : null;
         unset($data['skills']);
 
         $requisition->update($data);
