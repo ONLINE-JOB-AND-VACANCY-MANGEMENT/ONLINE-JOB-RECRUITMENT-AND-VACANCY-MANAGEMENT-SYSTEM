@@ -25,6 +25,15 @@ class UserResource extends JsonResource
             'cgpa' => $this->cgpa,
             'graduation_university' => $this->graduation_university,
             'worked_company' => $this->worked_company,
+            'bio' => $this->bio,
+            'skills' => $this->skills,
+            'certificates' => $this->whenLoaded('certificates', fn () => $this->certificates->map(fn ($certificate) => [
+                'id' => $certificate->id,
+                'title' => $certificate->title,
+                'url' => $certificate->url,
+                'file_path' => $certificate->file_path,
+                'original_name' => $certificate->original_name,
+            ])),
             // department_id is a plain column (always safe). The department NAME comes
             // from a relation, so it's guarded with whenLoaded() — that checks whether
             // 'department' was already eager-loaded and, if not, skips touching the

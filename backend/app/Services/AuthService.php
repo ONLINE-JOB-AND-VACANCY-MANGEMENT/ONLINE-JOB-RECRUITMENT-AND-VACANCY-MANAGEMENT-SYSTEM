@@ -27,13 +27,22 @@ class AuthService
             'cgpa' => $data['cgpa'] ?? null,
             'graduation_university' => $data['graduation_university'] ?? null,
             'worked_company' => $data['worked_company'] ?? null,
+            'bio' => $data['bio'] ?? null,
+            'skills' => $data['skills'] ?? null,
         ]);
+
+        foreach ($data['certificates'] ?? [] as $certificate) {
+            $user->certificates()->create([
+                'title' => $certificate['title'],
+                'url' => $certificate['url'] ?? null,
+            ]);
+        }
 
         // Eloquent's $with default eager-loads only apply to models resolved via a
         // query (find/where/etc.), not to one just built by create() in this same
         // request — so 'role' must be loaded explicitly here or UserResource's
         // `$this->role?->name` throws a LazyLoadingViolationException in local/dev.
-        $user->load('role');
+        $user->load(['role', 'certificates']);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

@@ -14,9 +14,11 @@ use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\JobRequisitionController;
 use App\Http\Controllers\JobFeedController;
+use App\Http\Controllers\AnnouncementController;
 
 // Public
 Route::get('/feed/jobs', [JobFeedController::class, 'index']);
+Route::get('/announcements', [AnnouncementController::class, 'index']);
 Route::get('/jobs', [JobController::class, 'index']);
 Route::get('/jobs/{job}', [JobController::class, 'show']);
 
@@ -35,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [UserController::class, 'updateProfile']);
+    Route::delete('/profile/certificates/{certificate}', [UserController::class, 'deleteCertificate']);
     Route::post('/change-password', [UserController::class, 'changePassword']);
     Route::get('/bookmarks', [BookmarkController::class, 'index']);
     Route::post('/jobs/{job}/bookmark', [BookmarkController::class, 'store']);
@@ -64,6 +67,8 @@ Route::middleware(['auth:sanctum', 'role:manager,employer'])->group(function () 
 
 // HR (employer) only
 Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
+    Route::post('/announcements', [AnnouncementController::class, 'store']);
+    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy']);
     Route::post('/main-categories', [MainCategoryController::class, 'store']);
     Route::put('/main-categories/{mainCategory}', [MainCategoryController::class, 'update']);
     Route::delete('/main-categories/{mainCategory}', [MainCategoryController::class, 'destroy']);

@@ -71,6 +71,31 @@ a { color: inherit; }
   border-bottom: 1px solid var(--hp-line);
   text-decoration: none;
 }
+.hp-profile-icon {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hp-line);
+  border-radius: 50%;
+  background: var(--hp-surface);
+  text-decoration: none;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.hp-sidebar > .hp-sidebar-logo .hp-profile-icon {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  z-index: 40;
+}
+.hp-profile-icon:hover { background: var(--hp-ink); filter: grayscale(1) brightness(2); }
+.hp-profile-icon--mobile { margin-left: auto; }
+@media (max-width: 860px) {
+  .hp-sidebar > .hp-sidebar-logo .hp-profile-icon { display: none; }
+}
 .hp-sidebar-logo img { height: 40px; width: auto; flex-shrink: 0; }
 .hp-brand {
   font-family: var(--font-display);

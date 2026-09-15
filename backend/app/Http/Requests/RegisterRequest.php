@@ -29,6 +29,11 @@ class RegisterRequest extends FormRequest
             'cgpa' => 'nullable|numeric|min:0|max:4',
             'graduation_university' => 'nullable|string|max:255',
             'worked_company' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:2000',
+            'skills' => 'nullable|string|max:2000',
+            'certificates' => 'nullable|array|max:10',
+            'certificates.*.title' => 'required_with:certificates|string|max:255',
+            'certificates.*.url' => 'nullable|url|max:2048',
         ];
     }
 }

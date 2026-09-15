@@ -98,6 +98,8 @@ export default function EmployerRequisitions() {
   const [stats, setStats] = useState({})
   const [page, setPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
+  const [notice, setNotice] = useState({ title: '', message: '' })
+  const [savingNotice, setSavingNotice] = useState(false)
 
   function load(targetPage = page) {
     setLoading(true)
@@ -115,6 +117,19 @@ export default function EmployerRequisitions() {
 
   useEffect(load, [])
 
+  async function publishNotice(e) {
+    e.preventDefault()
+    setSavingNotice(true)
+    try {
+      await api.post('/announcements', notice)
+      setNotice({ title: '', message: '' })
+      toast.success('Announcement published')
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Could not publish announcement.')
+    } finally {
+      setSavingNotice(false)
+    }
+  }
 
   async function handleApprove(id) {
     setBusyId(id)
@@ -174,6 +189,14 @@ export default function EmployerRequisitions() {
     <div className="container py-5">
       <p className="hp-eyebrow">HR approval queue</p>
       <h1 className="hp-h1 mb-4">Review requisitions.</h1>
+      <form className="hp-card mb-4" onSubmit={publishNotice}>
+        <h2 className="hp-h3 mt-0">Publish an HR notice</h2>
+        <div className="row g-2">
+          <div className="col-md-4"><input className="form-control" required maxLength="255" placeholder="Notice title" value={notice.title} onChange={(e) => setNotice({ ...notice, title: e.target.value })} /></div>
+          <div className="col-md-6"><input className="form-control" required maxLength="2000" placeholder="Message for the homepage" value={notice.message} onChange={(e) => setNotice({ ...notice, message: e.target.value })} /></div>
+          <div className="col-md-2"><button className="btn hp-btn-accent w-100" disabled={savingNotice}>{savingNotice ? 'Publishing…' : 'Publish'}</button></div>
+        </div>
+      </form>
 
       <div className="row g-3 mb-4">
         {[

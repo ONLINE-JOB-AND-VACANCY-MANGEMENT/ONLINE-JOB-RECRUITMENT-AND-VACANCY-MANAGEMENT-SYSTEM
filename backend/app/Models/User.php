@@ -14,7 +14,7 @@ class User extends Authenticatable
     protected $fillable = [
         'role_id', 'name', 'first_name', 'middle_name', 'last_name', 'email', 'password',
         'phone', 'address', 'profile_photo', 'is_active',
-        'cgpa', 'graduation_university', 'worked_company', 'department_id', 'must_change_password',
+        'cgpa', 'graduation_university', 'worked_company', 'bio', 'skills', 'department_id', 'must_change_password',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -76,6 +76,11 @@ class User extends Authenticatable
     public function resumes()
     {
         return $this->hasMany(Resume::class);
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
     }
 
     public function notifications_custom()

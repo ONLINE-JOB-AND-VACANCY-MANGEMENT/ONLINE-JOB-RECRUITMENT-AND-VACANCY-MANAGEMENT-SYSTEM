@@ -18,7 +18,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Registration successful',
-            'user' => new UserResource($result['user']),
+            'user' => new UserResource($result['user']->load('certificates')),
             'token' => $result['token'],
         ], 201);
     }
@@ -43,6 +43,6 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return new UserResource($request->user()->load(['role', 'department']));
+        return new UserResource($request->user()->load(['role', 'department', 'certificates']));
     }
 }

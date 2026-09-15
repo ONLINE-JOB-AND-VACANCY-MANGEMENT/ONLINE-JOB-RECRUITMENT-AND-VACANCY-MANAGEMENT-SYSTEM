@@ -27,12 +27,19 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <>
-      <Link to="/" className="hp-sidebar-logo" onClick={() => setOpen(false)}>
-        <img src={logo} alt="AASTU logo" />
-        <span className="hp-brand">
-          AASTU<br /><span className="hp-brand-accent">JobPortal</span>
-        </span>
-      </Link>
+      <div className="hp-sidebar-logo">
+        <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none" onClick={() => setOpen(false)}>
+          <img src={logo} alt="AASTU logo" />
+          <span className="hp-brand">
+            AASTU<br /><span className="hp-brand-accent">JobPortal</span>
+          </span>
+        </Link>
+        {user && (
+          <Link to="/profile" className="hp-profile-icon" onClick={() => setOpen(false)} aria-label="Open my profile" title="My profile">
+            <span aria-hidden="true">👤</span>
+          </Link>
+        )}
+      </div>
 
       <nav className="hp-sidebar-nav" onClick={() => setOpen(false)}>
         <NavItem to="/jobs">Browse jobs</NavItem>
@@ -71,7 +78,6 @@ export default function Sidebar() {
         {user && (
           <>
             <p className="hp-sidebar-section-label">Account</p>
-            <NavItem to="/profile">My profile</NavItem>
             <NavItem to="/notifications">Notifications</NavItem>
           </>
         )}
@@ -104,6 +110,11 @@ export default function Sidebar() {
         </button>
         <img src={logo} alt="AASTU logo" />
         <span className="hp-brand">AASTU JobPortal</span>
+        {user && (
+          <Link to="/profile" className="hp-profile-icon hp-profile-icon--mobile" onClick={() => setOpen(false)} aria-label="Open my profile" title="My profile">
+            <span aria-hidden="true">👤</span>
+          </Link>
+        )}
       </div>
 
       {open && <div className="hp-sidebar-backdrop" onClick={() => setOpen(false)} />}

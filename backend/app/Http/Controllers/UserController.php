@@ -21,15 +21,46 @@ class UserController extends Controller
     {
         $user = $request->user();
         $data = $request->validated();
+        unset($data['certificate_title'], $data['certificate_url'], $data['certificate_file']);
 
         if ($request->hasFile('profile_photo')) {
             $this->fileUploadService->delete($user->profile_photo);
             $data['profile_photo'] = $this->fileUploadService->upload($request->file('profile_photo'), 'profile-photos');
         }
 
+        if ($request->user()->role?->name !== 'job_seeker') {
+            unset($data['bio'], $data['skills']);
+        }
         $user->update($data);
 
-        return response()->json(['message' => 'Profile updated', 'user' => new UserResource($user->load(['role', 'department']))]);
+        if ($request->user()->role?->name === 'job_seeker' && ($request->filled('certificate_title') || $request->hasFile('certificate_file') || $request->filled('certificate_url'))) {
+            if (!$request->filled('certificate_title')) {
+                return response()->json(['message' => 'A certificate title is required when adding a certificate.'], 422);
+            }
+            $certificateData = [
+                'title' => $request->input('certificate_title'),
+                'url' => $request->input('certificate_url'),
+            ];
+            if ($request->hasFile('certificate_file')) {
+                $certificateData['file_path'] = $this->fileUploadService->upload($request->file('certificate_file'), 'certificates');
+                $certificateData['original_name'] = $request->file('certificate_file')->getClientOriginalName();
+            }
+            $user->certificates()->create($certificateData);
+        }
+
+        return response()->json(['message' => 'Profile updated', 'user' => new UserResource($user->load(['role', 'department', 'certificates']))]);
+    }
+
+    public function deleteCertificate(Request $request, \App\Models\Certificate $certificate)
+    {
+        if ($certificate->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $this->fileUploadService->delete($certificate->file_path);
+        $certificate->delete();
+
+        return response()->json(['message' => 'Certificate removed']);
     }
 
     public function changePassword(ChangePasswordRequest $request)
