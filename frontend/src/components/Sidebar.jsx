@@ -39,6 +39,9 @@ export default function Sidebar() {
             <span aria-hidden="true">👤</span>
           </Link>
         )}
+        {!user && (
+          <Link to="/login" className="hp-login-link" onClick={() => setOpen(false)}>Log in</Link>
+        )}
       </div>
 
       <nav className="hp-sidebar-nav" onClick={() => setOpen(false)}>
@@ -65,6 +68,7 @@ export default function Sidebar() {
             <NavItem to="/employer/jobs">Manage jobs</NavItem>
             <NavItem to="/employer/requisitions">Requisitions</NavItem>
             <NavItem to="/employer/analytics">Analytics &amp; reports</NavItem>
+            <NavItem to="/employer/catalog">Manage catalog</NavItem>
           </>
         )}
 
@@ -84,14 +88,6 @@ export default function Sidebar() {
       </nav>
 
       <div className="hp-sidebar-footer">
-        {!user && (
-          <>
-            <NavItem to="/login">Log in</NavItem>
-            <Link to="/register" className="btn hp-btn-accent btn-sm text-center" onClick={() => setOpen(false)}>
-              Get started
-            </Link>
-          </>
-        )}
         {user && (
           <>
             <span className="hp-user-chip">{user.name} · {user.role?.replace('_', ' ') ?? 'no role'}</span>
@@ -115,6 +111,7 @@ export default function Sidebar() {
             <span aria-hidden="true">👤</span>
           </Link>
         )}
+        {!user && <Link to="/login" className="hp-login-link hp-login-link--mobile" onClick={() => setOpen(false)}>Log in</Link>}
       </div>
 
       {open && <div className="hp-sidebar-backdrop" onClick={() => setOpen(false)} />}

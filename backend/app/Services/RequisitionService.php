@@ -9,6 +9,10 @@ class RequisitionService
 {
     public function create(array $data): JobRequisition
     {
+        if (array_key_exists('salary', $data)) {
+            $data['salary_min'] = $data['salary'];
+            $data['salary_max'] = $data['salary'];
+        }
         $skillIds = $data['skills'] ?? [];
         unset($data['skills']);
 
@@ -34,6 +38,10 @@ class RequisitionService
         $skillIds = array_key_exists('skills', $data) ? $data['skills'] : null;
         unset($data['skills']);
 
+        if (array_key_exists('salary', $data)) {
+            $data['salary_min'] = $data['salary'];
+            $data['salary_max'] = $data['salary'];
+        }
         $requisition->update($data);
 
         if ($skillIds !== null) {
@@ -61,6 +69,10 @@ class RequisitionService
             throw new \Exception('This requisition has already been posted as a public job — salary and dates can no longer be edited here.');
         }
 
+        if (array_key_exists('salary', $data)) {
+            $data['salary_min'] = $data['salary'];
+            $data['salary_max'] = $data['salary'];
+        }
         $requisition->update($data);
 
         return $requisition->load(['jobTitle.department.mainCategory', 'skills']);

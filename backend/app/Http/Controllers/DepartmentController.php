@@ -27,12 +27,25 @@ class DepartmentController extends Controller
 
     public function update(StoreDepartmentRequest $request, Department $department)
     {
+        if ($department->jobTitles()->where(function ($query) {
+            $query->whereHas('jobs')->orWhereHas('requisitions');
+        })->exists()) {
+            return response()->json(['message' => 'This department has job applicants or requisitions and cannot be renamed.'], 409);
+        }
         $department->update($request->validated());
         return response()->json(['message' => 'Department updated', 'department' => $department]);
     }
 
     public function destroy(Department $department)
     {
+        if ($department->jobTitles()->where(function ($query) {
+            $query->whereHas('jobs')->orWhereHas('requisitions');
+        })->exists()) {
+            return response()->json([
+                'message' => 'This department contains job titles used by jobs or requisitions and cannot be deleted.',
+            ], 409);
+        }
+
         $department->delete();
         return response()->json(['message' => 'Department deleted']);
     }

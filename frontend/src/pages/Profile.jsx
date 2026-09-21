@@ -45,6 +45,7 @@ export default function Profile() {
   }
 
   async function removeCertificate(id) {
+    if (!window.confirm('Remove this certificate from your profile?')) return
     try {
       await api.delete(`/profile/certificates/${id}`)
       setCertificates((items) => items.filter((certificate) => certificate.id !== id))

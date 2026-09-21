@@ -37,6 +37,7 @@ export default function ManagerRequisitions() {
   useEffect(load, [])
 
   async function handleSubmit(id) {
+    if (!window.confirm('Submit this requisition for HR approval? You may not be able to edit it afterward.')) return
     setBusyId(id)
     try {
       await api.post(`/requisitions/${id}/submit`)
@@ -106,9 +107,9 @@ export default function ManagerRequisitions() {
 
             <StatusPipeline stages={REQ_STAGES} current={req.status} rejectedKey="rejected" rejectedLabel="Rejected" />
 
-            {(req.salary_min || req.salary_max) && (
+            {req.salary && (
               <p className="hp-salary mt-3 mb-0">
-                {req.salary_min ?? '—'} – {req.salary_max ?? '—'}
+                Salary: {req.salary}
               </p>
             )}
 

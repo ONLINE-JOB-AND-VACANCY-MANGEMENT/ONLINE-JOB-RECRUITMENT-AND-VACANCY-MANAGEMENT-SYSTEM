@@ -14,9 +14,6 @@ export default function Register() {
     phone: '',
     address: '',
     role: 'job_seeker',
-    first_name: '',
-    middle_name: '',
-    last_name: '',
     cgpa: '',
     graduation_university: '',
     worked_company: '',
@@ -62,26 +59,8 @@ export default function Register() {
 
         <label className="form-label hp-label">Full name *</label>
         <input className="form-control mb-3" required value={form.name} onChange={update('name')} />
-
-        <div className="row g-2 mb-1">
-          <div className="col-md-4">
-            <label className="form-label hp-label">First name *</label>
-            <input className="form-control" required value={form.first_name} onChange={update('first_name')} />
-            {errors.first_name && <p className="text-danger small">{errors.first_name[0]}</p>}
-          </div>
-          <div className="col-md-4">
-            <label className="form-label hp-label">Middle name *</label>
-            <input className="form-control" required value={form.middle_name} onChange={update('middle_name')} />
-            {errors.middle_name && <p className="text-danger small">{errors.middle_name[0]}</p>}
-          </div>
-          <div className="col-md-4">
-            <label className="form-label hp-label">Last name *</label>
-            <input className="form-control" required value={form.last_name} onChange={update('last_name')} />
-            {errors.last_name && <p className="text-danger small">{errors.last_name[0]}</p>}
-          </div>
-        </div>
         <p className="hp-muted small mb-3">
-          Used for official records; "Full name" above is what's shown around the app.
+          Enter your first, middle, and last names in this full-name field.
         </p>
 
         <label className="form-label hp-label">Email *</label>
@@ -89,7 +68,15 @@ export default function Register() {
         {errors.email && <p className="text-danger small">{errors.email[0]}</p>}
 
         <label className="form-label hp-label">Phone *</label>
-        <input className="form-control mb-3" required value={form.phone} onChange={update('phone')} />
+        <input
+          className="form-control mb-3"
+          required
+          pattern="(?:09\d{8}|07\d{8}|\+2519\d{8}|\+2717\d{8})"
+          title="Use 09XXXXXXXX, 07XXXXXXXX, +2519XXXXXXXX, or +2717XXXXXXXX"
+          placeholder="09XXXXXXXX or 07XXXXXXXX"
+          value={form.phone}
+          onChange={update('phone')}
+        />
         {errors.phone && <p className="text-danger small">{errors.phone[0]}</p>}
 
         <label className="form-label hp-label">Address</label>

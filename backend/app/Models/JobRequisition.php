@@ -11,7 +11,7 @@ class JobRequisition extends Model
 
     protected $fillable = [
         'job_title_id', 'requested_by', 'approved_by', 'job_type', 'target_hire_date',
-        'salary_min', 'salary_max', 'justification', 'requirements', 'start_date', 'end_date',
+        'salary', 'salary_min', 'salary_max', 'justification', 'requirements', 'start_date', 'end_date',
         'status', 'approved_at', 'rejection_reason',
     ];
 
@@ -22,6 +22,7 @@ class JobRequisition extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'approved_at' => 'datetime',
+            'salary' => 'decimal:2',
             'salary_min' => 'decimal:2',
             'salary_max' => 'decimal:2',
         ];

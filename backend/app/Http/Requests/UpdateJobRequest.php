@@ -27,7 +27,7 @@ class UpdateJobRequest extends FormRequest
             'experience_level' => 'sometimes|in:entry,mid,senior,executive',
             'status'           => 'sometimes|in:open,closed,draft',
             'start_date'       => 'nullable|date',
-            'end_date'         => 'nullable|date|after_or_equal:start_date',
+            'end_date'         => 'nullable|date|after:start_date',
             'skills'           => 'nullable|array',
             'skills.*'         => 'exists:skills,id',
         ];

@@ -66,7 +66,7 @@ Route::middleware(['auth:sanctum', 'role:manager,employer'])->group(function () 
 });
 
 // HR (employer) only
-Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:employer,hr'])->group(function () {
     Route::post('/announcements', [AnnouncementController::class, 'store']);
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy']);
     Route::post('/main-categories', [MainCategoryController::class, 'store']);
@@ -78,6 +78,9 @@ Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
     Route::delete('/departments/{department}', [DepartmentController::class, 'destroy']);
 
     Route::delete('/job-titles/{jobTitle}', [JobTitleController::class, 'destroy']);
+    Route::put('/job-titles/{jobTitle}', [JobTitleController::class, 'update']);
+    Route::post('/catalog/import', [MainCategoryController::class, 'import']);
+    Route::post('/main-categories/import', [MainCategoryController::class, 'import']);
 
     Route::delete('/skills/{skill}', [SkillController::class, 'destroy']);
 
@@ -95,9 +98,14 @@ Route::middleware(['auth:sanctum', 'role:employer'])->group(function () {
     // One-time whole-portal CSV export — every applicant across every job, with job
     // title/department/main category on each row.
     Route::get('/applicants/export-all', [ApplicationController::class, 'exportAllApplicants']);
+    Route::get('/applications/{application}', [ApplicationController::class, 'show']);
     Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus']);
+    Route::patch('/applications/bulk-status', [ApplicationController::class, 'bulkStatus']);
+    Route::post('/applications/import-results', [ApplicationController::class, 'importResults']);
     Route::post('/applications/{application}/schedule-exam', [ApplicationController::class, 'scheduleExam']);
     Route::post('/applications/{application}/schedule-interview', [ApplicationController::class, 'scheduleInterview']);
+    Route::post('/applications/{application}/request-documents', [ApplicationController::class, 'requestDocuments']);
+    Route::post('/applications/{application}/prove-documents', [ApplicationController::class, 'proveDocuments']);
 });
 
 // Admin only

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Job;
 use App\Models\JobRequisition;
+use App\Models\JobTitle;
 use Illuminate\Support\Facades\Auth;
 
 class JobService
@@ -76,6 +77,12 @@ class JobService
         if (!empty($filters['department_id'])) {
             $query->whereHas('jobTitle', fn ($q) => $q->where('department_id', $filters['department_id']));
         }
+        if (!empty($filters['main_category_id'])) {
+            $query->whereHas('jobTitle.department', fn ($q) => $q->where('main_category_id', $filters['main_category_id']));
+        }
+        if (!empty($filters['job_title_id'])) {
+            $query->where('job_title_id', $filters['job_title_id']);
+        }
 
         return $query->latest()->paginate($filters['per_page'] ?? 15);
     }
@@ -99,14 +106,37 @@ class JobService
             $data['job_title_id'] = $requisition->job_title_id;
             $data['job_type'] = $data['job_type'] ?? $requisition->job_type;
             $data['requirements'] = $data['requirements'] ?? $requisition->requirements;
-            $data['salary_min'] = $data['salary_min'] ?? $requisition->salary_min;
-            $data['salary_max'] = $data['salary_max'] ?? $requisition->salary_max;
+            $data['salary'] = $data['salary'] ?? $requisition->salary_min ?? $requisition->salary_max;
             $data['start_date'] = $data['start_date'] ?? $requisition->start_date;
             $data['end_date'] = $data['end_date'] ?? $requisition->end_date;
             $skillIds = $data['skills'] ?? $requisition->skills()->pluck('skills.id')->all();
         } else {
             $skillIds = $data['skills'] ?? [];
         }
+
+        $jobTitle = JobTitle::findOrFail($data['job_title_id']);
+        $experience = $data['experience_level'] ?? 'entry';
+        $salary = $jobTitle->salary;
+        if ($salary === null) {
+            $salary = (($jobTitle->salary_ranges ?? [])[$experience] ?? null);
+            if (is_array($salary)) {
+                $salary = $salary['amount'] ?? $salary['min'] ?? $salary['max'] ?? null;
+            }
+        }
+
+        // The catalog is the source of truth for the title. Description,
+        // requirements and salary are defaults, while HR may edit them on the
+        // posting form before publishing.
+        $data['title'] = $jobTitle->name;
+        if (!array_key_exists('description', $data) || $data['description'] === null || trim((string) $data['description']) === '') {
+            $data['description'] = $jobTitle->description ?? '';
+        }
+        if (!array_key_exists('requirements', $data) || $data['requirements'] === null || trim((string) $data['requirements']) === '') {
+            $data['requirements'] = $jobTitle->requirements;
+        }
+        $data['salary'] = $data['salary'] ?? $salary;
+        $data['salary_min'] = $data['salary_min'] ?? $data['salary'];
+        $data['salary_max'] = $data['salary_max'] ?? $data['salary'];
 
         $data['status'] = $data['status'] ?? 'open';
         $data['published_at'] = now();

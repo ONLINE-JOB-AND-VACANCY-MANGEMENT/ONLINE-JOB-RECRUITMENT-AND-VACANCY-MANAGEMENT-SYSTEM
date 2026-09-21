@@ -43,29 +43,28 @@ function RejectForm({ onSubmit, onCancel, submitting }) {
   )
 }
 
-// HR's narrow edit: only the fields directly tied to their role — salary range and
+// HR's narrow edit: only the fields directly tied to their role — salary and
 // the application window. Everything else on the requisition belongs to the manager.
 function HrFieldsForm({ requisition, onSubmit, onCancel, submitting }) {
-  const [salaryMin, setSalaryMin] = useState(requisition.salary_min ?? '')
-  const [salaryMax, setSalaryMax] = useState(requisition.salary_max ?? '')
+  const [salary, setSalary] = useState(requisition.salary ?? requisition.salary_min ?? requisition.salary_max ?? '')
   const [startDate, setStartDate] = useState(requisition.start_date ?? '')
   const [endDate, setEndDate] = useState(requisition.end_date ?? '')
 
   function handleSubmit(e) {
     e.preventDefault()
-    onSubmit({ salary_min: salaryMin, salary_max: salaryMax, start_date: startDate, end_date: endDate })
+    if (startDate && endDate && startDate === endDate) {
+      toast.error('End date must be different from the start date.')
+      return
+    }
+    onSubmit({ salary, start_date: startDate, end_date: endDate })
   }
 
   return (
     <form onSubmit={handleSubmit} className="hp-schedule-form mt-3">
       <div className="row g-2">
-        <div className="col-6 col-md-3">
-          <label className="hp-label form-label">Salary min</label>
-          <input type="number" className="form-control" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} />
-        </div>
-        <div className="col-6 col-md-3">
-          <label className="hp-label form-label">Salary max</label>
-          <input type="number" className="form-control" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} />
+        <div className="col-12 col-md-3">
+          <label className="hp-label form-label">Salary</label>
+          <input type="number" className="form-control" value={salary} onChange={(e) => setSalary(e.target.value)} />
         </div>
         <div className="col-6 col-md-3">
           <label className="hp-label form-label">Start date</label>
@@ -132,6 +131,7 @@ export default function EmployerRequisitions() {
   }
 
   async function handleApprove(id) {
+    if (!window.confirm('Approve this job requisition?')) return
     setBusyId(id)
     try {
       await api.post(`/requisitions/${id}/approve`)
@@ -145,6 +145,7 @@ export default function EmployerRequisitions() {
   }
 
   async function handleReject(id, reason) {
+    if (!window.confirm('Reject this job requisition?')) return
     setBusyId(id)
     try {
       await api.post(`/requisitions/${id}/reject`, { rejection_reason: reason })
@@ -159,6 +160,7 @@ export default function EmployerRequisitions() {
   }
 
   async function handleReadyToPost(id) {
+    if (!window.confirm('Mark this requisition ready to post?')) return
     setBusyId(id)
     try {
       await api.post(`/requisitions/${id}/ready-to-post`)
@@ -235,9 +237,9 @@ export default function EmployerRequisitions() {
                   <p className="hp-card-meta mb-0">
                     {req.main_category} · {req.department} · Requested by {req.requested_by?.name}
                   </p>
-                  {(req.salary_min || req.salary_max) && (
+                  {req.salary && (
                     <p className="hp-salary mb-0 mt-1">
-                      {req.salary_min ?? '—'} – {req.salary_max ?? '—'}
+                      Salary: {req.salary}
                     </p>
                   )}
                   {(req.start_date || req.end_date) && (

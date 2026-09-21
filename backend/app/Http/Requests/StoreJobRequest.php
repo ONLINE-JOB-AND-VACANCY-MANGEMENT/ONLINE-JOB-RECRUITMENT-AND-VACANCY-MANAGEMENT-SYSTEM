@@ -22,9 +22,11 @@ class StoreJobRequest extends FormRequest
         return [
             'requisition_id' => 'nullable|exists:job_requisitions,id',
             'job_title_id' => $fromRequisition ? 'nullable|exists:job_titles,id' : 'required|exists:job_titles,id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            // The title is always taken from the selected catalog job title.
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
             'requirements' => 'nullable|string',
+            'salary' => 'nullable|numeric|min:0',
             'salary_min' => 'nullable|numeric|min:0',
             'salary_max' => 'nullable|numeric|gte:salary_min',
             'location' => 'nullable|string|max:255',
@@ -32,7 +34,7 @@ class StoreJobRequest extends FormRequest
             'workplace_type' => 'required|in:onsite,remote,hybrid',
             'experience_level' => 'required|in:entry,mid,senior,executive',
             'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after:start_date',
             'skills' => 'nullable|array',
             'skills.*' => 'exists:skills,id',
         ];

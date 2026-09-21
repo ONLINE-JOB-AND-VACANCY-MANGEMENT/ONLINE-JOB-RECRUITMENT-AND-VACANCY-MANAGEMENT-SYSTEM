@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function ($schedule) {
         $schedule->command('jobs:close-expired')->daily();
+        $schedule->command('applications:reject-expired-documents')->hourly();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([

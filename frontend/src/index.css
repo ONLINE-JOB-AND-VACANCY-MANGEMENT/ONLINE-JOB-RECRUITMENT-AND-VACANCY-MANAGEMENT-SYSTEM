@@ -51,7 +51,7 @@ a { color: inherit; }
 }
 
 .hp-sidebar {
-  width: 250px;
+  width: 215px;
   flex-shrink: 0;
   background: var(--hp-paper);
   border-right: 1px solid var(--hp-line);
@@ -93,6 +93,22 @@ a { color: inherit; }
 }
 .hp-profile-icon:hover { background: var(--hp-ink); filter: grayscale(1) brightness(2); }
 .hp-profile-icon--mobile { margin-left: auto; }
+.hp-login-link {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  z-index: 40;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--hp-ink);
+  border-radius: 999px;
+  color: var(--hp-ink);
+  background: var(--hp-paper);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.hp-login-link:hover { background: var(--hp-ink); color: #fff; }
+.hp-login-link--mobile { position: static; margin-left: auto; }
 @media (max-width: 860px) {
   .hp-sidebar > .hp-sidebar-logo .hp-profile-icon { display: none; }
 }
@@ -155,6 +171,64 @@ a { color: inherit; }
 }
 
 .hp-main-content { flex: 1; min-width: 0; }
+
+.hp-home { background: var(--hp-paper); }
+.hp-home-header {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  z-index: 10;
+}
+.hp-home-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--hp-ink);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.hp-home-brand img { width: 42px; height: 42px; object-fit: contain; border-radius: 6px; }
+.hp-home-brand strong { color: var(--hp-accent-dark); }
+.hp-home-account-actions { position: absolute; top: 1rem; right: 1.5rem; z-index: 10; }
+.hp-home-account-actions .hp-profile-icon,
+.hp-home-account-actions .hp-login-link { position: static; }
+.hp-home-welcome {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 88% 15%, rgba(153,121,80,0.18), transparent 28%),
+    linear-gradient(135deg, #fff 0%, #f7f7f8 58%, #eef1f6 100%);
+  border-bottom: 1px solid var(--hp-line);
+}
+.hp-home-welcome::after {
+  content: '';
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  right: 8%;
+  bottom: -170px;
+  border: 1px solid rgba(0,35,102,0.12);
+  border-radius: 50%;
+  box-shadow: 0 0 0 35px rgba(0,35,102,0.035), 0 0 0 70px rgba(153,121,80,0.05);
+}
+.hp-home-welcome .container { position: relative; z-index: 1; }
+.hp-home-welcome-content { max-width: 760px; padding: 2.5rem 0 3rem; }
+.hp-home-pipeline {
+  max-width: 760px;
+  padding: 1.1rem 1.3rem;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(0,35,102,0.12);
+  border-radius: 14px;
+  box-shadow: 0 14px 35px rgba(0,35,102,0.08);
+}
+.hp-home-introduction { background: var(--hp-paper); }
+.hp-home-introduction .container { border-bottom: 1px solid var(--hp-line); }
+.hp-home-copy { color: var(--hp-slate); line-height: 1.75; max-width: 75ch; }
+.hp-home-copy strong { color: var(--hp-ink); }
+.hp-home-opportunities { background: var(--hp-surface); }
+.hp-home-section-heading { margin-bottom: 1.5rem; }
 
 /* Slim top strip, mobile only — houses the sidebar toggle */
 .hp-mobile-topbar {

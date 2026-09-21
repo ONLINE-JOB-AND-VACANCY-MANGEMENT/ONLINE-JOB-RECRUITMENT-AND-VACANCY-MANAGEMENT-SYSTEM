@@ -84,8 +84,8 @@ export default function JobDetail() {
 
         <div className="col-lg-4 mt-4 mt-lg-0">
           <div className="hp-side-card">
-            {(job.salary_min || job.salary_max) && (
-              <p className="hp-salary">{job.salary_min ?? '—'} – {job.salary_max ?? '—'}</p>
+            {job.salary != null && (
+              <p className="hp-salary">{job.salary}</p>
             )}
             <button className="btn hp-btn-accent w-100" onClick={handleApplyClick}>
               Apply for this role

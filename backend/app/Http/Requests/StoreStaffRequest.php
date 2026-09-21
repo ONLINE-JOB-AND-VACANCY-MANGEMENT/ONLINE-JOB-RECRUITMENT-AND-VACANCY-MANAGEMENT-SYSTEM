@@ -17,6 +17,7 @@ class StoreStaffRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => [
                 'required',
                 'string',
@@ -26,7 +27,7 @@ class StoreStaffRequest extends FormRequest
             ],
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => 'required|in:employer,manager',
-            'phone' => ['required', 'string', 'regex:/^(?:09\d{8}|\+2519\d{8})$/'],
+            'phone' => ['required', 'string', 'regex:/^(?:09\d{8}|07\d{8}|\+2519\d{8}|\+2717\d{8})$/'],
             // users.department_id already existed in the schema but wasn't collected
             // anywhere — this is the "admin department picker" item from the handoff
             // roadmap (§8). Only meaningful for managers, but kept simply nullable

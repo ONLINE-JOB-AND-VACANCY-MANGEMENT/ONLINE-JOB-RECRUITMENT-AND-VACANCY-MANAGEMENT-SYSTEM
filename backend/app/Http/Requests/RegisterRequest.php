@@ -19,13 +19,10 @@ class RegisterRequest extends FormRequest
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => 'required|in:job_seeker',
-            // Required, not optional, per the latest requirements — a job seeker must
-            // provide their full name breakdown and a phone number at registration.
-            'phone' => 'required|string|max:20',
+            // The single full-name field must contain the applicant's first, middle,
+            // and last names.
+            'phone' => ['required', 'string', 'regex:/^(?:09\d{8}|07\d{8}|\+2519\d{8}|\+2717\d{8})$/'],
             'address' => 'nullable|string|max:255',
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'cgpa' => 'nullable|numeric|min:0|max:4',
             'graduation_university' => 'nullable|string|max:255',
             'worked_company' => 'nullable|string|max:255',

@@ -10,11 +10,9 @@ const EXPERIENCE_LEVELS = ['entry', 'mid', 'senior', 'executive']
 
 const emptyForm = {
   job_title_id: '',
-  title: '',
   description: '',
   requirements: '',
-  salary_min: '',
-  salary_max: '',
+  salary: '',
   location: '',
   job_type: 'full_time',
   workplace_type: 'onsite',
@@ -28,6 +26,7 @@ export default function DirectJobPostForm() {
   const navigate = useNavigate()
   const [allSkills, setAllSkills] = useState([])
   const [form, setForm] = useState(emptyForm)
+  const [selectedJobTitle, setSelectedJobTitle] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
 
@@ -43,7 +42,34 @@ export default function DirectJobPostForm() {
   }, [])
 
   function update(field) {
-    return (e) => setForm({ ...form, [field]: e.target.value })
+    return (e) => {
+      const value = e.target.value
+      if (field === 'experience_level' && selectedJobTitle) {
+        setForm((prev) => ({
+          ...prev,
+          experience_level: value,
+          salary: selectedJobTitle.salary ?? prev.salary,
+          description: selectedJobTitle.description ?? prev.description,
+          requirements: selectedJobTitle.requirements ?? prev.requirements,
+        }))
+        return
+      }
+      setForm({ ...form, [field]: value })
+    }
+  }
+
+  function handleJobTitleChange(jobTitle) {
+    setSelectedJobTitle(jobTitle)
+    if (!jobTitle) {
+      setForm((prev) => ({ ...prev, description: '', requirements: '', salary: '' }))
+      return
+    }
+    setForm((prev) => ({
+      ...prev,
+      description: jobTitle.description ?? '',
+      requirements: jobTitle.requirements ?? '',
+      salary: jobTitle.salary ?? '',
+    }))
   }
 
   function toggleSkill(skillId) {
@@ -72,6 +98,12 @@ export default function DirectJobPostForm() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (!window.confirm('Publish this job now? It will become visible to applicants.')) return
+    if (form.start_date && form.end_date && form.start_date === form.end_date) {
+      setErrors({ end_date: ['End date must be later than the start date.'] })
+      toast.error('End date must be different from the start date.')
+      return
+    }
     setSubmitting(true)
     setErrors({})
     try {
@@ -93,31 +125,22 @@ export default function DirectJobPostForm() {
       <h1 className="hp-h1 mb-4">Post a new job.</h1>
 
       <form onSubmit={handleSubmit} className="hp-auth-card" style={{ maxWidth: 'none' }}>
-        <CategoryPicker value={form.job_title_id} onChange={(id) => setForm({ ...form, job_title_id: id })} />
+        <CategoryPicker
+          value={form.job_title_id}
+          onChange={(id) => setForm((prev) => ({ ...prev, job_title_id: id }))}
+          onJobTitleChange={handleJobTitleChange}
+        />
         {errors.job_title_id && <p className="text-danger small">{errors.job_title_id[0]}</p>}
 
-        <label className="hp-label form-label mt-3">Title</label>
-        <input className="form-control mb-1" required value={form.title} onChange={update('title')} />
-        {errors.title && <p className="text-danger small">{errors.title[0]}</p>}
-
         <label className="hp-label form-label mt-3">Description</label>
-        <textarea className="form-control mb-1" rows={5} required value={form.description} onChange={update('description')} />
+        <textarea className="form-control mb-1" rows={5} value={form.description} onChange={update('description')} />
         {errors.description && <p className="text-danger small">{errors.description[0]}</p>}
 
         <label className="hp-label form-label mt-3">Requirements (optional)</label>
         <textarea className="form-control mb-1" rows={3} value={form.requirements} onChange={update('requirements')} />
 
-        <div className="row g-2 mt-2">
-          <div className="col-6">
-            <label className="hp-label form-label">Salary min</label>
-            <input type="number" className="form-control" value={form.salary_min} onChange={update('salary_min')} />
-          </div>
-          <div className="col-6">
-            <label className="hp-label form-label">Salary max</label>
-            <input type="number" className="form-control" value={form.salary_max} onChange={update('salary_max')} />
-          </div>
-        </div>
-        {errors.salary_max && <p className="text-danger small">{errors.salary_max[0]}</p>}
+        <label className="hp-label form-label mt-3">Salary</label>
+        <input type="number" className="form-control" value={form.salary} readOnly />
 
         <label className="hp-label form-label mt-3">Location (optional)</label>
         <input className="form-control mb-1" value={form.location} onChange={update('location')} />

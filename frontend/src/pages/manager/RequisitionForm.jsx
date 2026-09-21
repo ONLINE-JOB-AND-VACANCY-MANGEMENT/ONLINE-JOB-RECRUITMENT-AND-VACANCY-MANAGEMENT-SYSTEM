@@ -10,8 +10,7 @@ const emptyForm = {
   job_title_id: '',
   job_type: 'full_time',
   target_hire_date: '',
-  salary_min: '',
-  salary_max: '',
+  salary: '',
   justification: '',
   requirements: '',
   skills: [],
@@ -59,8 +58,7 @@ export default function RequisitionForm() {
           job_title_id: req.job_title_id ?? '',
           job_type: req.job_type ?? 'full_time',
           target_hire_date: req.target_hire_date ? String(req.target_hire_date).substring(0, 10) : '',
-          salary_min: req.salary_min ?? '',
-          salary_max: req.salary_max ?? '',
+          salary: req.salary ?? req.salary_min ?? req.salary_max ?? '',
           justification: req.justification ?? '',
           requirements: req.requirements ?? '',
           skills: (req.skills ?? []).map((s) => skills.find((as) => as.name === s)?.id).filter(Boolean),
@@ -162,17 +160,9 @@ export default function RequisitionForm() {
         />
         {errors.target_hire_date && <p className="text-danger small">{errors.target_hire_date[0]}</p>}
 
-        <div className="row g-2 mt-2">
-          <div className="col-6">
-            <label className="hp-label form-label">Salary min (optional)</label>
-            <input type="number" className="form-control" disabled={readOnly} value={form.salary_min} onChange={update('salary_min')} />
-          </div>
-          <div className="col-6">
-            <label className="hp-label form-label">Salary max (optional)</label>
-            <input type="number" className="form-control" disabled={readOnly} value={form.salary_max} onChange={update('salary_max')} />
-          </div>
-        </div>
-        {errors.salary_max && <p className="text-danger small">{errors.salary_max[0]}</p>}
+        <label className="hp-label form-label mt-3">Salary (optional)</label>
+        <input type="number" className="form-control" disabled={readOnly} value={form.salary} onChange={update('salary')} />
+        {errors.salary && <p className="text-danger small">{errors.salary[0]}</p>}
 
         <label className="hp-label form-label mt-3">Requirements (optional)</label>
         <textarea

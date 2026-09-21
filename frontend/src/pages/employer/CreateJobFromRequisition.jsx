@@ -16,7 +16,6 @@ export default function CreateJobFromRequisition() {
   const [errors, setErrors] = useState({})
 
   const [form, setForm] = useState({
-    title: '',
     description: '',
     workplace_type: 'onsite',
     experience_level: 'entry',
@@ -29,7 +28,10 @@ export default function CreateJobFromRequisition() {
       .then(({ data }) => {
         const req = data.data ?? data
         setRequisition(req)
-        setForm((prev) => ({ ...prev, title: req.job_title ?? '' }))
+        setForm((prev) => ({
+          ...prev,
+          description: req.job_title_description ?? '',
+        }))
       })
       .catch(() => toast.error('Could not load requisition details.'))
       .finally(() => setLoading(false))
@@ -41,6 +43,7 @@ export default function CreateJobFromRequisition() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (!window.confirm('Create and publish this job posting from the approved requisition?')) return
     setSubmitting(true)
     setErrors({})
     try {
@@ -89,12 +92,8 @@ export default function CreateJobFromRequisition() {
       </div>
 
       <form onSubmit={handleSubmit} className="hp-auth-card" style={{ maxWidth: 'none' }}>
-        <label className="hp-label form-label">Title</label>
-        <input className="form-control mb-1" required value={form.title} onChange={update('title')} />
-        {errors.title && <p className="text-danger small">{errors.title[0]}</p>}
-
         <label className="hp-label form-label mt-3">Description</label>
-        <textarea className="form-control mb-1" rows={5} required value={form.description} onChange={update('description')} />
+        <textarea className="form-control mb-1" rows={5} value={form.description} onChange={update('description')} />
         {errors.description && <p className="text-danger small">{errors.description[0]}</p>}
 
         <label className="hp-label form-label mt-3">Location (optional)</label>

@@ -139,11 +139,13 @@ class UserController extends Controller
         $role = \App\Models\Role::where('name', $request->role)->firstOrFail();
         $name = trim($request->name);
         $fatherName = trim($request->father_name);
+        $lastName = trim($request->last_name);
         $email = $this->uniqueStaffEmail($name, $fatherName);
 
         $user = \App\Models\User::create([
             'role_id' => $role->id,
-            'name' => trim("{$name} {$fatherName}"),
+            'name' => trim("{$name} {$fatherName} {$lastName}"),
+            'last_name' => $lastName,
             'email' => $email,
             'password' => \Illuminate\Support\Facades\Hash::make($request->password),
             'phone' => $request->phone,

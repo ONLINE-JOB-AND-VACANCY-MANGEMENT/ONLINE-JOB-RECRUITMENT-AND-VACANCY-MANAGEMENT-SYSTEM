@@ -13,6 +13,9 @@ class JobRequisitionResource extends JsonResource
             'id' => $this->id,
             'job_title_id' => $this->job_title_id,
             'job_title' => $this->jobTitle?->name,
+            'job_title_description' => $this->jobTitle?->description,
+            'job_title_requirements' => $this->jobTitle?->requirements,
+            'job_title_salary_ranges' => $this->jobTitle?->salary_ranges,
             // Plain IDs alongside the existing name strings, so the frontend can
             // pre-populate the CategoryPicker dropdowns directly when editing an
             // existing requisition instead of brute-force searching every department
@@ -23,8 +26,7 @@ class JobRequisitionResource extends JsonResource
             'main_category' => $this->jobTitle?->department?->mainCategory?->name,
             'job_type' => $this->job_type,
             'target_hire_date' => $this->target_hire_date,
-            'salary_min' => $this->salary_min,
-            'salary_max' => $this->salary_max,
+            'salary' => $this->salary ?? $this->salary_min ?? $this->salary_max,
             'justification' => $this->justification,
             'requirements' => $this->requirements,
             'start_date' => $this->start_date,

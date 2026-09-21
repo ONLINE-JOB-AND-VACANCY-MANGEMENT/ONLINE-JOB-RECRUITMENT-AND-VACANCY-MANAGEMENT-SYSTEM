@@ -8,6 +8,8 @@ const STAGES = [
   { key: 'shortlisted', label: 'Shortlisted' },
   { key: 'exam_scheduled', label: 'Exam' },
   { key: 'interview_scheduled', label: 'Interview' },
+  { key: 'reserved', label: 'Reserved' },
+  { key: 'documentation_requested', label: 'Document approval' },
   { key: 'hired', label: 'Hired' },
 ]
 
@@ -62,6 +64,17 @@ export default function MyApplications() {
                 {app.interview.location ? ` · ${app.interview.location}` : ''}
                 {app.interview.meeting_link && <> · <a href={app.interview.meeting_link} target="_blank" rel="noreferrer">Join meeting</a></>}
               </p>
+            )}
+            {app.status === 'documentation_requested' && app.document_request && (
+              <div className="border rounded p-3 mt-3">
+                <p className="hp-card-meta">
+                  <strong>Document approval:</strong> Bring the documents listed below to{' '}
+                  <strong>{app.document_request.location || 'the HR office'}</strong> by{' '}
+                  <strong>{new Date(app.document_request.deadline).toLocaleString()}</strong>.
+                </p>
+                <p className="mb-0"><strong>Bring:</strong> {app.document_request.required_documents.join(', ')}</p>
+                {app.document_request.announcement && <p className="hp-muted mb-0 mt-2">{app.document_request.announcement}</p>}
+              </div>
             )}
           </div>
         ))}

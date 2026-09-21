@@ -6,7 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobTitle extends Model
 {
-    protected $fillable = ['department_id', 'name'];
+    protected $fillable = [
+        'department_id', 'name', 'description', 'requirements', 'salary', 'salary_ranges',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'salary' => 'decimal:2',
+            'salary_ranges' => 'array',
+        ];
+    }
 
     public function department()
     {

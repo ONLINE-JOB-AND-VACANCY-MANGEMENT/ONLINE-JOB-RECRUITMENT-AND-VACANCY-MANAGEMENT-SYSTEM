@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
-import { toast } from 'react-toastify'
 
 /**
  * Cascading Main Category -> Department -> Job Title picker. Both managers and HR
@@ -24,7 +23,7 @@ import { toast } from 'react-toastify'
  * inline "create a new job title" affordance below uses a plain <div> and a
  * type="button" handler for exactly this reason — keep it that way.
  */
-export default function CategoryPicker({ value, onChange, disabled, initialMainCategoryId, initialDepartmentId }) {
+export default function CategoryPicker({ value, onChange, onJobTitleChange, disabled, initialMainCategoryId, initialDepartmentId }) {
   const [mainCategories, setMainCategories] = useState([])
   const [departments, setDepartments] = useState([])
   const [jobTitles, setJobTitles] = useState([])
@@ -32,9 +31,6 @@ export default function CategoryPicker({ value, onChange, disabled, initialMainC
   const [mainCategoryId, setMainCategoryId] = useState('')
   const [departmentId, setDepartmentId] = useState('')
 
-  const [creatingTitle, setCreatingTitle] = useState(false)
-  const [newTitleName, setNewTitleName] = useState('')
-  const [submittingTitle, setSubmittingTitle] = useState(false)
 
   useEffect(() => {
     api.get('/main-categories').then(({ data }) => setMainCategories(data))
@@ -64,6 +60,7 @@ export default function CategoryPicker({ value, onChange, disabled, initialMainC
     setDepartmentId('')
     setJobTitles([])
     onChange('')
+    onJobTitleChange?.(null)
     if (!id) {
       setDepartments([])
       return
@@ -75,28 +72,12 @@ export default function CategoryPicker({ value, onChange, disabled, initialMainC
     const id = e.target.value
     setDepartmentId(id)
     onChange('')
+    onJobTitleChange?.(null)
     if (!id) {
       setJobTitles([])
       return
     }
     api.get('/job-titles', { params: { department_id: id } }).then(({ data }) => setJobTitles(data))
-  }
-
-  async function handleCreateTitle() {
-    if (!newTitleName.trim()) return
-    setSubmittingTitle(true)
-    try {
-      const { data } = await api.post('/job-titles', { department_id: departmentId, name: newTitleName })
-      toast.success('Job title created')
-      setJobTitles((prev) => [...prev, data.job_title])
-      onChange(String(data.job_title.id))
-      setNewTitleName('')
-      setCreatingTitle(false)
-    } catch (err) {
-      toast.error(err.response?.data?.message ?? 'Could not create job title.')
-    } finally {
-      setSubmittingTitle(false)
-    }
   }
 
   return (
@@ -129,7 +110,11 @@ export default function CategoryPicker({ value, onChange, disabled, initialMainC
         required
         disabled={disabled || !departmentId}
         value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          const selected = jobTitles.find((jobTitle) => String(jobTitle.id) === e.target.value)
+          onChange(e.target.value)
+          onJobTitleChange?.(selected ?? null)
+        }}
       >
         <option value="">{departmentId ? 'Select…' : 'Choose a department first'}</option>
         {jobTitles.map((jt) => (
@@ -137,34 +122,6 @@ export default function CategoryPicker({ value, onChange, disabled, initialMainC
         ))}
       </select>
 
-      {departmentId && !disabled && (
-        <div className="mt-2">
-          {!creatingTitle ? (
-            <button type="button" className="btn hp-btn-outline btn-sm" onClick={() => setCreatingTitle(true)}>
-              + This job title doesn't exist yet
-            </button>
-          ) : (
-            // Plain <div>, not <form> — see the component-level note above.
-            <div className="hp-schedule-form mt-2">
-              <label className="hp-label form-label">New job title name</label>
-              <div className="d-flex gap-2">
-                <input
-                  className="form-control"
-                  value={newTitleName}
-                  onChange={(e) => setNewTitleName(e.target.value)}
-                  placeholder="e.g. Junior Software Engineer"
-                />
-                <button type="button" className="btn hp-btn-accent btn-sm" onClick={handleCreateTitle} disabled={submittingTitle}>
-                  {submittingTitle ? 'Adding…' : 'Add'}
-                </button>
-                <button type="button" className="btn hp-btn-outline btn-sm" onClick={() => setCreatingTitle(false)}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

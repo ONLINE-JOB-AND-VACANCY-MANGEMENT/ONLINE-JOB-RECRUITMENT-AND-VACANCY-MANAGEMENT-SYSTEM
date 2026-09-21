@@ -17,9 +17,6 @@ class AuthService
         $user = User::create([
             'role_id' => $role->id,
             'name' => $data['name'],
-            'first_name' => $data['first_name'] ?? null,
-            'middle_name' => $data['middle_name'] ?? null,
-            'last_name' => $data['last_name'] ?? null,
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'phone' => $data['phone'] ?? null,

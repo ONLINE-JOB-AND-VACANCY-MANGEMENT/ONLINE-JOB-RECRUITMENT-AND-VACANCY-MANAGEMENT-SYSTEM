@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import StatusPipeline from '../components/StatusPipeline'
 import { useEffect, useState } from 'react'
 import api from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
+import logo from '../assets/aastu logo.jpg'
 
 const DEMO_STAGES = [
   { key: 'applied', label: 'Applied' },
@@ -12,6 +14,7 @@ const DEMO_STAGES = [
 ]
 
 export default function Home() {
+  const { user } = useAuth()
   const [jobs, setJobs] = useState([])
   const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,27 +31,64 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="hp-hero">
-      <div className="container py-5">
-        <p className="hp-eyebrow">Internal recruitment, made visible</p>
-        <h1 className="hp-h1">
-          Every hire is a path.
-          <br />
-          Now you can see it.
-        </h1>
-        <p className="hp-hero-sub">
-          From requisition to offer — track exactly where every role and every candidate stands, at every stage.
-        </p>
-        <div className="d-flex flex-wrap gap-3 mb-5">
-          <Link to="/jobs" className="btn hp-btn-accent">Browse open roles</Link>
-          <Link to="/register" className="btn hp-btn-outline">Create an account</Link>
-        </div>
-        <div className="hp-hero-pipeline-demo">
-          <p className="hp-label mb-3">A candidate's path, in one glance</p>
-          <StatusPipeline stages={DEMO_STAGES} current="interview_scheduled" />
-        </div>
+    <div className="hp-home">
+      <header className="hp-home-header">
+        <Link to="/" className="hp-home-brand">
+          <img src={logo} alt="AASTU logo" />
+          <span>AASTU <strong>JobPortal</strong></span>
+        </Link>
+      </header>
+      <div className="hp-home-account-actions">
+        {user ? (
+          <Link to="/profile" className="hp-profile-icon" aria-label="Open my profile" title="My profile">
+            <span aria-hidden="true">👤</span>
+          </Link>
+        ) : (
+          <Link to="/login" className="hp-login-link">Log in</Link>
+        )}
       </div>
-      <div className="container pb-5">
+      <section className="hp-home-welcome">
+        <div className="container py-5">
+          <div className="hp-home-welcome-content">
+            <p className="hp-eyebrow">AASTU online job portal</p>
+            <h1 className="hp-h1">Find your next opportunity.<br />Build the future with AASTU.</h1>
+            <p className="hp-hero-sub">A trusted space connecting talented people with meaningful work at Addis Ababa Science and Technology University.</p>
+            <div className="d-flex flex-wrap gap-3">
+              <Link to="/jobs" className="btn hp-btn-accent">Browse jobs</Link>
+              <Link to="/register" className="btn hp-btn-outline">Create account</Link>
+            </div>
+          </div>
+          <div className="hp-home-pipeline">
+            <p className="hp-label mb-3">A clear path from application to opportunity</p>
+            <StatusPipeline stages={DEMO_STAGES} current="interview_scheduled" />
+          </div>
+        </div>
+      </section>
+
+      <section className="hp-home-introduction">
+        <div className="container py-5">
+          <div className="row align-items-center g-4">
+            <div className="col-lg-4">
+              <p className="hp-eyebrow">About AASTU</p>
+              <h2 className="hp-h2">A decade of learning, innovation, and service.</h2>
+            </div>
+            <div className="col-lg-8">
+              <p className="hp-home-copy"><strong>Welcome to Addis Ababa Science and Technology University's Online Job Portal</strong></p>
+              <p className="hp-home-copy"><strong>Ethiopia's Premier Science and Technology Institution</strong></p>
+              <p className="hp-home-copy">AASTU is dedicated to advancing knowledge, fostering innovation, and developing skilled graduates who will lead Ethiopia's technological transformation. Our commitment to excellence in research, teaching, and community service makes us a center of academic distinction in Africa. It has been more than a decade since we start educating students across different departments.</p>
+              <p className="hp-home-copy mb-0">This is the University's online job portal for recruiting potential workers for the job that will be available in our organization. If you are looking for a job this is the right place.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="hp-home-opportunities">
+        <div className="container py-5">
+          <div className="hp-home-section-heading">
+            <p className="hp-eyebrow">Opportunities</p>
+            <h2 className="hp-h2 mb-2">Explore what is happening at AASTU.</h2>
+            <p className="hp-muted mb-0">Browse current vacancies, important deadlines, and updates from HR.</p>
+          </div>
         {loading && <div className="hp-card"><p className="hp-muted mb-0">Loading vacancies and notices…</p></div>}
         {error && <div className="hp-card"><p className="hp-muted mb-0">We could not load the latest vacancies right now. Please try again later.</p></div>}
         {!loading && !error && (
@@ -77,7 +117,8 @@ export default function Home() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </section>
     </div>
   )
 }

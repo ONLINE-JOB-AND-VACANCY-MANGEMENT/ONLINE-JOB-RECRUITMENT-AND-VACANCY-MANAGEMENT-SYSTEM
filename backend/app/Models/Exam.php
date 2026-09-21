@@ -9,7 +9,7 @@ class Exam extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['application_id', 'scheduled_at', 'location', 'mode', 'status', 'score', 'notes'];
+    protected $fillable = ['application_id', 'scheduled_at', 'location', 'mode', 'status', 'score', 'notes', 'deadline', 'laws_requirements'];
 
     protected function casts(): array
     {
@@ -19,5 +19,10 @@ class Exam extends Model
     public function application()
     {
         return $this->belongsTo(Application::class);
+    }
+
+    public function getResultAttribute(): ?float
+    {
+        return $this->score === null ? null : (float) $this->score;
     }
 }

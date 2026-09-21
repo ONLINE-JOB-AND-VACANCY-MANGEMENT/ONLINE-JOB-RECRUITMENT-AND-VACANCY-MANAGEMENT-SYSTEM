@@ -12,7 +12,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'role_id', 'name', 'first_name', 'middle_name', 'last_name', 'email', 'password',
+        'role_id', 'applicant_id', 'name', 'first_name', 'middle_name', 'last_name', 'email', 'password',
         'phone', 'address', 'profile_photo', 'is_active',
         'cgpa', 'graduation_university', 'worked_company', 'bio', 'skills', 'department_id', 'must_change_password',
     ];
@@ -35,6 +35,18 @@ class User extends Authenticatable
     // AuthService::register() still explicitly calls ->load('role') right after
     // create(), matching the pattern UserController::storeStaff() already used.
     protected $with = ['role'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $user) {
+            if ($user->applicant_id === null && $user->role_id && Role::whereKey($user->role_id)->value('name') === 'job_seeker') {
+                $user->applicant_id = ((int) static::max('applicant_id')) + 1;
+                if ($user->applicant_id > 9999) {
+                    throw new \RuntimeException('Applicant ID limit reached.');
+                }
+            }
+        });
+    }
 
     protected function casts(): array
     {

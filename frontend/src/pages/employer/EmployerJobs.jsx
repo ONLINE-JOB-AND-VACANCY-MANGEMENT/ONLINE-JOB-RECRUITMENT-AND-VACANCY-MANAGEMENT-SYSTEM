@@ -12,11 +12,13 @@ export default function EmployerJobs() {
   const [total, setTotal] = useState(0)
   const [exportingAll, setExportingAll] = useState(false)
   const [busyId, setBusyId] = useState(null)
+  const [catalog, setCatalog] = useState({ categories: [], departments: [], titles: [] })
+  const [filters, setFilters] = useState({ main_category_id: '', department_id: '', job_title_id: '' })
 
   function load(targetPage = 1) {
     setLoading(true)
     api
-      .get('/internal-jobs', { params: { page: targetPage } })
+      .get('/internal-jobs', { params: { page: targetPage, ...filters } })
       .then(({ data }) => {
         const list = data.data ?? data
         setJobs(list)
@@ -28,14 +30,27 @@ export default function EmployerJobs() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => load(1), []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters])
+
+  useEffect(() => {
+    Promise.all([api.get('/main-categories'), api.get('/departments'), api.get('/job-titles')])
+      .then(([categories, departments, titles]) => setCatalog({
+        categories: categories.data.data ?? categories.data,
+        departments: departments.data.data ?? departments.data,
+        titles: titles.data.data ?? titles.data,
+      }))
+      .catch(() => toast.error('Could not load job filters.'))
+  }, [])
 
   // Whole-portal export — every applicant across every job, in one file, each row
   // carrying its own job title/department/main category.
   async function handleExportAll() {
     setExportingAll(true)
     try {
-      const res = await api.get('/applicants/export-all', { responseType: 'blob' })
+      const res = await api.get('/applicants/export-all', { params: filters, responseType: 'blob' })
       const url = window.URL.createObjectURL(new Blob([res.data]))
       const link = document.createElement('a')
       link.href = url
@@ -74,6 +89,7 @@ export default function EmployerJobs() {
           <p className="hp-eyebrow mb-1">HR pipeline</p>
           <h1 className="hp-h1 mb-0">Manage postings.</h1>
         </div>
+
         <div className="d-flex gap-2">
           <button className="btn hp-btn-outline" onClick={handleExportAll} disabled={exportingAll}>
             {exportingAll ? 'Exporting…' : 'Export all applicants'}
@@ -82,7 +98,33 @@ export default function EmployerJobs() {
         </div>
       </div>
 
-      {loading && <p className="hp-muted">Loading jobs…</p>}
+      <div className="hp-card mb-4">
+        <div className="row g-2 align-items-end">
+            <div className="col-md-4">
+              <label className="hp-label form-label">Category</label>
+              <select className="form-select" value={filters.main_category_id} onChange={(e) => setFilters({ main_category_id: e.target.value, department_id: '', job_title_id: '' })}>
+                <option value="">All categories</option>
+                {catalog.categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="hp-label form-label">Department</label>
+              <select className="form-select" value={filters.department_id} onChange={(e) => setFilters({ ...filters, department_id: e.target.value, job_title_id: '' })}>
+                <option value="">All departments</option>
+                {catalog.departments.filter((item) => !filters.main_category_id || String(item.main_category_id) === String(filters.main_category_id)).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="hp-label form-label">Job title</label>
+              <select className="form-select" value={filters.job_title_id} onChange={(e) => setFilters({ ...filters, job_title_id: e.target.value })}>
+                <option value="">All job titles</option>
+                {catalog.titles.filter((item) => (!filters.department_id || String(item.department_id) === String(filters.department_id))).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {loading && <p className="hp-muted">Loading jobs…</p>}
       {error && <p className="text-danger">{error}</p>}
       {!loading && !error && jobs.length === 0 && (
         <p className="hp-muted">No job postings yet.</p>

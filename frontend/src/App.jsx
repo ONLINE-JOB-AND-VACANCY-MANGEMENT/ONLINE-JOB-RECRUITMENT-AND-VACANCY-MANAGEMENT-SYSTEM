@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -10,6 +10,7 @@ import MyBookmarks from './pages/MyBookmarks'
 import Notifications from './pages/Notifications'
 import EmployerJobs from './pages/employer/EmployerJobs'
 import JobApplicants from './pages/employer/JobApplicants'
+import ApplicantDetails from './pages/employer/ApplicantDetails'
 import ManagerRequisitions from './pages/manager/ManagerRequisitions'
 import RequisitionForm from './pages/manager/RequisitionForm'
 import EmployerRequisitions from './pages/employer/EmployerRequisitions'
@@ -22,11 +23,15 @@ import NotFound from './pages/NotFound'
 import ChangePassword from './pages/ChangePassword'
 import Profile from './pages/Profile'
 import HrAnalytics from './pages/employer/HrAnalytics'
+import CatalogManagement from './pages/employer/CatalogManagement'
 
 export default function App() {
+  const { pathname } = useLocation()
+  const isHome = pathname === '/'
+
   return (
     <div className="hp-app-shell">
-      <Sidebar />
+      {!isHome && <Sidebar />}
       <main className="hp-main-content">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -89,6 +94,10 @@ export default function App() {
             }
           />
           <Route
+            path="/employer/jobs/:id/applicants/:applicationId"
+            element={<ProtectedRoute roles={['employer']}><ApplicantDetails /></ProtectedRoute>}
+          />
+          <Route
             path="/manager/requisitions"
             element={
               <ProtectedRoute roles={['manager']}>
@@ -123,6 +132,10 @@ export default function App() {
           <Route
             path="/employer/analytics"
             element={<ProtectedRoute roles={['employer']}><HrAnalytics /></ProtectedRoute>}
+          />
+          <Route
+            path="/employer/catalog"
+            element={<ProtectedRoute roles={['employer']}><CatalogManagement /></ProtectedRoute>}
           />
           <Route
             path="/employer/requisitions/:id/create-job"

@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 const emptyForm = {
   name: '',
   father_name: '',
+  last_name: '',
   email: '',
   password: '',
   password_confirmation: '',
@@ -75,6 +76,8 @@ export default function AdminUsers() {
   }, [])
 
   async function toggleActive(user) {
+    const action = user.is_active ? 'deactivate' : 'activate'
+    if (!window.confirm(`Are you sure you want to ${action} ${user.name}'s account?`)) return
     setBusyId(user.id)
     try {
       await api.patch(`/users/${user.id}/toggle-active`)
@@ -139,6 +142,7 @@ export default function AdminUsers() {
 
   async function handleCreateStaff(e) {
     e.preventDefault()
+    if (!window.confirm(`Create this ${form.role === 'employer' ? 'HR' : 'manager'} staff account with the generated AASTU email?`)) return
     setSubmitting(true)
     setErrors({})
     try {
@@ -194,6 +198,10 @@ export default function AdminUsers() {
           <input className="form-control mb-3" required value={form.father_name} onChange={update('father_name')} />
           {errors.father_name && <p className="text-danger small">{errors.father_name[0]}</p>}
 
+          <label className="hp-label form-label">Last name</label>
+          <input className="form-control mb-3" required value={form.last_name} onChange={update('last_name')} />
+          {errors.last_name && <p className="text-danger small">{errors.last_name[0]}</p>}
+
           <label className="hp-label form-label">Email</label>
           <input
             type="email"
@@ -230,8 +238,9 @@ export default function AdminUsers() {
             type="tel"
             className="form-control mb-3"
             required
-            pattern="(?:09\d{8}|\+2519\d{8})"
-            title="Use 09XXXXXXXX or +2519XXXXXXXX"
+            pattern="(?:09\d{8}|07\d{8}|\+2519\d{8}|\+2717\d{8})"
+            title="Use 09XXXXXXXX, 07XXXXXXXX, +2519XXXXXXXX, or +2717XXXXXXXX"
+            placeholder="09XXXXXXXX or 07XXXXXXXX"
             value={form.phone}
             onChange={update('phone')}
           />

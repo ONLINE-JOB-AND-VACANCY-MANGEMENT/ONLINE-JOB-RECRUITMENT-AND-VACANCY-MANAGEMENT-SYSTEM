@@ -13,7 +13,7 @@ class Job extends Model
 
     protected $fillable = [
         'job_title_id', 'requisition_id', 'company_id', 'posted_by', 'title', 'description', 'requirements',
-        'salary_min', 'salary_max', 'location', 'job_type', 'workplace_type',
+        'salary', 'salary_min', 'salary_max', 'location', 'job_type', 'workplace_type',
         'experience_level', 'status', 'published_at', 'start_date', 'end_date',
     ];
 
@@ -36,6 +36,7 @@ class Job extends Model
             'published_at' => 'datetime',
             'salary_min' => 'decimal:2',
             'salary_max' => 'decimal:2',
+            'salary' => 'decimal:2',
         ];
     }
 
